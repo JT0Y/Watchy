@@ -10,9 +10,9 @@
 #include <Fonts/FreeSans12pt7b.h>
 #include "icons.h"
 
-class Watchy7SEG : public Watchy{
+class WatchyDavid : public Watchy{
     public:
-        Watchy7SEG();
+        WatchyDavid();
         void drawWatchFace();
         void drawTime();
         void drawDate();

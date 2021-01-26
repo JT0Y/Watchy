@@ -1,8 +1,9 @@
-#include "Watchy_7_SEG.h"
+#include "Watchy_David.h"
 
 #define DARKMODE false
 #define FOREGROUND_COLOR (DARKMODE ? GxEPD_WHITE : GxEPD_BLACK)
 #define BACKGROUND_COLOR (DARKMODE ? GxEPD_BLACK : GxEPD_WHITE)
+#define BATTERY_OFFSET 0.25
 
 const uint8_t BATTERY_SEGMENT_WIDTH = 7;
 const uint8_t BATTERY_SEGMENT_HEIGHT = 11;
@@ -11,10 +12,10 @@ const uint8_t WEATHER_ICON_WIDTH = 48;
 const uint8_t WEATHER_ICON_HEIGHT = 32;
 
 
-Watchy7SEG::Watchy7SEG(){} //constructor
+WatchyDavid::WatchyDavid(){} //constructor
 
 
-void Watchy7SEG::drawWatchFace(){
+void WatchyDavid::drawWatchFace(){
     display.fillScreen(BACKGROUND_COLOR);
     display.setTextColor(FOREGROUND_COLOR);
     drawTime();
@@ -37,7 +38,7 @@ void Watchy7SEG::drawWatchFace(){
 }
 
 
-void Watchy7SEG::drawTime(){
+void WatchyDavid::drawTime(){
     display.setFont(&DSEG7_Classic_Bold_53);
     display.setCursor(5, 53+5);
     if(currentTime.Hour < 10){
@@ -52,7 +53,7 @@ void Watchy7SEG::drawTime(){
 }
 
 
-void Watchy7SEG::drawDate(){
+void WatchyDavid::drawDate(){
     int16_t  x1, y1;
     uint16_t w, h;
 
@@ -73,7 +74,7 @@ void Watchy7SEG::drawDate(){
 }
 
 
-void Watchy7SEG::drawSteps(){
+void WatchyDavid::drawSteps(){
     display.setFont(&FreeSans18pt7b);
     uint32_t stepCount = sensor.getCounter();
     int16_t  x1, y1;
@@ -87,13 +88,13 @@ void Watchy7SEG::drawSteps(){
 }
 
 
-void Watchy7SEG::drawBattery(){
-    float voltage = getBatteryVoltage();
+void WatchyDavid::drawBattery(){
+    float voltage = getBatteryVoltage() + BATTERY_OFFSET;
     int8_t percentage = 2808.3808 * pow(voltage, 4) - 43560.9157 * pow(voltage, 3) + 252848.5888 * pow(voltage, 2) - 650767.4615 * voltage + 626532.5703;
-    int8_t batteryLevel = percentage > 0.80 ? 4 :
-                          percentage > 0.65 ? 3 :
-                          percentage > 0.50 ? 2 :
-                          percentage > 0.35 ? 1 : 0;
+    int8_t batteryLevel = percentage > 80 ? 4 :
+                          percentage > 65 ? 3 :
+                          percentage > 50 ? 2 :
+                          percentage > 35 ? 1 : 0;
     display.drawBitmap(125, 78, battery, 37, 21, FOREGROUND_COLOR);
     display.fillRect(125+5, 83, 27, BATTERY_SEGMENT_HEIGHT, BACKGROUND_COLOR);//clear battery segments
     for(int8_t batterySegments = 0; batterySegments < batteryLevel; batterySegments++){

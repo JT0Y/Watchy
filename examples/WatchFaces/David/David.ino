@@ -1,6 +1,6 @@
-#include "Watchy_7_SEG.h"
+#include "Watchy_David.h"
 
-Watchy7SEG watchy;
+WatchyDavid watchy;
 
 void setup(){
   watchy.init();
