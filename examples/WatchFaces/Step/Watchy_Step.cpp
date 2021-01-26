@@ -3,9 +3,7 @@
 #define DARKMODE            false
 #define FOREGROUND_COLOR    (DARKMODE ? GxEPD_WHITE : GxEPD_BLACK)
 #define BACKGROUND_COLOR    (DARKMODE ? GxEPD_BLACK : GxEPD_WHITE)
-#define GRAPH_COLOR         FOREGROUND_COLOR
 #define BATTERY_OFFSET      0.25
-
 
 // They are stored in RTC RAM - Thererfore they are not part of the class.
 RTC_DATA_ATTR int steps_hours[24] = {0};
@@ -63,20 +61,20 @@ float WatchyStep::getMaxSteps(){
 
 void WatchyStep::drawSteps(){   
     display.setFont(&FreeSans12pt7b);
-    display.drawLine(5, 139, 195, 139, GRAPH_COLOR);
-    display.drawLine(5, 140, 195, 140, GRAPH_COLOR);
-    display.drawLine(5, 141, 195, 141, GRAPH_COLOR);
+    display.drawLine(5, 139, 195, 139, FOREGROUND_COLOR);
+    display.drawLine(5, 140, 195, 140, FOREGROUND_COLOR);
+    display.drawLine(5, 141, 195, 141, FOREGROUND_COLOR);
 
     int16_t  x1, y1;
     uint16_t width, height;
     
     display.getTextBounds("12", 55, 195, &x1, &y1, &width, &height);
 
-    display.setCursor(12*8+4-int(width/2), 165);
+    display.setCursor(12*8+4-int(width/2), 162);
     display.println("12");
-    display.setCursor(6*8+4-int(width/2), 165);
+    display.setCursor(6*8+4-int(width/2), 162);
     display.println("06");
-    display.setCursor(18*8+4-int(width/2), 165);
+    display.setCursor(18*8+4-int(width/2), 162);
     display.println("18");
 
     // We sleep for 1 minute so it could happen that we miss one minute.
@@ -97,27 +95,38 @@ void WatchyStep::drawSteps(){
     
     float max_steps = getMaxSteps();
     for(int h=0; h < 24; h++){
-        // width = 192 for graph
-        // so 192/24 = 8 pixel for each hour
-        int8_t relative_steps = 70 * float(steps_hours[h]) / max_steps;        
-        display.drawLine(h*8 + 2, 140, h*8 + 2, 140-relative_steps, GRAPH_COLOR);
-        display.drawLine(h*8 + 3, 140, h*8 + 3, 140-relative_steps, GRAPH_COLOR);
-        display.drawLine(h*8 + 4, 140, h*8 + 4, 140-relative_steps, GRAPH_COLOR);
-        display.drawLine(h*8 + 5, 140, h*8 + 5, 140-relative_steps, GRAPH_COLOR);
+        // Clean lines for current hour
+        int8_t max_height = 70;
+        if(h == currentTime.Hour && currentTime.Minute <= 1){
+            display.drawLine(4+h*8 + 2, 140, 4+h*8 + 2, 140-max_height, BACKGROUND_COLOR);
+            display.drawLine(4+h*8 + 3, 140, 4+h*8 + 3, 140-max_height, BACKGROUND_COLOR);
+            display.drawLine(4+h*8 + 4, 140, 4+h*8 + 4, 140-max_height, BACKGROUND_COLOR);
+            display.drawLine(4+h*8 + 5, 140, 4+h*8 + 5, 140-max_height, BACKGROUND_COLOR);
+        }
+
+        int8_t relative_steps = max_height * float(steps_hours[h]) / (max_steps+1); // Numerical stability
+        display.drawLine(4+h*8 + 2, 140, 4+h*8 + 2, 140-relative_steps, FOREGROUND_COLOR);
+        display.drawLine(4+h*8 + 3, 140, 4+h*8 + 3, 140-relative_steps, FOREGROUND_COLOR);
+        display.drawLine(4+h*8 + 4, 140, 4+h*8 + 4, 140-relative_steps, FOREGROUND_COLOR);
+        display.drawLine(4+h*8 + 5, 140, 4+h*8 + 5, 140-relative_steps, FOREGROUND_COLOR);
     }
 
     // Show current position
-    display.drawLine(pos*8 + 3, 145, pos*8 + 3, 136, GRAPH_COLOR);
-    display.drawLine(pos*8 + 4, 145, pos*8 + 4, 136, GRAPH_COLOR);
-    display.drawLine(pos*8 + 5, 145, pos*8 + 5, 136, GRAPH_COLOR);
+    display.drawLine(4+pos*8 + 2, 140, 4+pos*8 + 2, 146, FOREGROUND_COLOR);
+    display.drawLine(4+pos*8 + 3, 140, 4+pos*8 + 3, 146, FOREGROUND_COLOR);
+    display.drawLine(4+pos*8 + 4, 140, 4+pos*8 + 4, 146, FOREGROUND_COLOR);
+    display.drawLine(4+pos*8 + 5, 140, 4+pos*8 + 5, 146, FOREGROUND_COLOR);
 
     // Show number of steps as text and bitmap
-    display.setFont(&FreeSans18pt7b);    
+    display.fillRect(0, 170, 200, 200, FOREGROUND_COLOR);//clear battery segments
+    display.setTextColor(BACKGROUND_COLOR);
+    display.setFont(&FreeSans12pt7b);    
     display.getTextBounds(String(step_count), 55, 195, &x1, &y1, &width, &height);
     int8_t bitmap_pos = int(200-width)/2;
-    display.drawBitmap(bitmap_pos-15, 174, steps, 19, 23, FOREGROUND_COLOR);
-    display.setCursor(bitmap_pos+15, 195);
+    display.drawBitmap(bitmap_pos-15, 174, steps, 19, 23, BACKGROUND_COLOR);
+    display.setCursor(bitmap_pos+15, 192);
     display.println(step_count);
+    display.setTextColor(FOREGROUND_COLOR);
 }
 
 
