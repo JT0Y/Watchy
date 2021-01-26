@@ -7,9 +7,10 @@
 #include <Fonts/FreeSans12pt7b.h>
 #include "icons.h"
 
+
 class WatchyStep : public Watchy {
     private:
-        int steps_hours[24] = {0};
+        float getMaxSteps();
     public:
         WatchyStep();
         void drawWatchFace();

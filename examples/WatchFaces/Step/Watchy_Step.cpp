@@ -7,6 +7,10 @@
 #define BATTERY_OFFSET      0.25
 
 
+// They are stored in RTC RAM - Thererfore they are not part of the class.
+RTC_DATA_ATTR int steps_hours[24] = {0};
+RTC_DATA_ATTR int last_step_count = 0;
+
 WatchyStep::WatchyStep(){} //constructor
 
 
@@ -22,7 +26,7 @@ void WatchyStep::drawWatchFace(){
 
 void WatchyStep::drawTime(){
     display.setFont(&FreeSans24pt7b);
-    display.setCursor(10, 40);
+    display.setCursor(15, 40);
     if(currentTime.Hour < 10){
         display.print("0");
     }
@@ -40,69 +44,80 @@ void WatchyStep::drawDate(){
     uint16_t w, h;
 
     display.setFont(&FreeSans12pt7b);
-    display.setCursor(150, 20);
-    //String day = dayShortStr(weekday(currentTime));
+    display.setCursor(15, 65);
     String dayOfWeek = dayShortStr(currentTime.Wday);
-    display.println(dayOfWeek);
-
-    display.setCursor(150, 45);
-    if(currentTime.Day < 10){
-      display.print("0");      
-    }     
+    display.print(dayOfWeek);
+    display.print(" ");
     display.println(currentTime.Day);
 }
 
 
-void WatchyStep::drawSteps(){
+float WatchyStep::getMaxSteps(){
+    float max_steps = -1;
+    for(int i=0; i < 24; i++){
+        max_steps = max(float(steps_hours[i]), max_steps);
+    }
+    return max_steps;
+}
+
+
+void WatchyStep::drawSteps(){   
     display.setFont(&FreeSans12pt7b);
+    display.drawLine(5, 139, 195, 139, GRAPH_COLOR);
+    display.drawLine(5, 140, 195, 140, GRAPH_COLOR);
+    display.drawLine(5, 141, 195, 141, GRAPH_COLOR);
+
+    int16_t  x1, y1;
+    uint16_t width, height;
+    
+    display.getTextBounds("12", 55, 195, &x1, &y1, &width, &height);
+
+    display.setCursor(12*8+4-int(width/2), 165);
+    display.println("12");
+    display.setCursor(6*8+4-int(width/2), 165);
+    display.println("06");
+    display.setCursor(18*8+4-int(width/2), 165);
+    display.println("18");
 
     // We sleep for 1 minute so it could happen that we miss one minute.
     // To ensure that everything is fine we reset 2 minutes...
     if(currentTime.Hour == 0 && currentTime.Minute <= 1){
         sensor.resetStepCounter();
-    }
-
-    uint32_t stepCount = sensor.getCounter();
-
-    float max_steps = -1;
-    for(int i=0; i < 24; i++){
-        max_steps = max(float(steps_hours[i]), max_steps);
+        last_step_count = 0;
     }
     
-    // Now lets draw the graph
+    // Lets write the absolute steps for this hour
+    uint32_t step_count = sensor.getCounter();
+    uint8_t pos = currentTime.Hour > 0 ? currentTime.Hour-1 : 23;
+    steps_hours[pos] = step_count - last_step_count;
+    
     if(currentTime.Minute <= 1){
-        steps_hours[currentTime.Hour] = stepCount;
-        if(currentTime.Hour > 0){
-            steps_hours[currentTime.Hour] -= steps_hours[currentTime.Hour-1];
-        }
-    }
-
-
-    //display.drawLine(5, 59, 195, 59, GRAPH_COLOR);
-    //display.drawLine(5, 60, 195, 60, GRAPH_COLOR);
-
-    display.drawLine(5, 159, 195, 159, GRAPH_COLOR);
-    display.drawLine(5, 160, 195, 160, GRAPH_COLOR);
-
-    for(int h=0; h<24; h++){
-        //display.setCursor(35, 70 + h*20);
-        //display.println(steps_hours[h]);
-
-        // height = 90
+        last_step_count = step_count;
+    }    
+    
+    float max_steps = getMaxSteps();
+    for(int h=0; h < 24; h++){
         // width = 192 for graph
         // so 192/24 = 8 pixel for each hour
-        int8_t relative_steps = 100 * float(steps_hours[h]) / max_steps;
-        display.drawLine(4 + h*8 + 2, 160, 4 + h*8 + 2, 160-relative_steps, GRAPH_COLOR);
-        display.drawLine(4 + h*8 + 3, 160, 4 + h*8 + 3, 160-relative_steps, GRAPH_COLOR);
-        display.drawLine(4 + h*8 + 4, 160, 4 + h*8 + 4, 160-relative_steps, GRAPH_COLOR);
-        display.drawLine(4 + h*8 + 5, 160, 4 + h*8 + 5, 160-relative_steps, GRAPH_COLOR);
+        int8_t relative_steps = 70 * float(steps_hours[h]) / max_steps;        
+        display.drawLine(h*8 + 2, 140, h*8 + 2, 140-relative_steps, GRAPH_COLOR);
+        display.drawLine(h*8 + 3, 140, h*8 + 3, 140-relative_steps, GRAPH_COLOR);
+        display.drawLine(h*8 + 4, 140, h*8 + 4, 140-relative_steps, GRAPH_COLOR);
+        display.drawLine(h*8 + 5, 140, h*8 + 5, 140-relative_steps, GRAPH_COLOR);
     }
 
+    // Show current position
+    display.drawLine(pos*8 + 3, 145, pos*8 + 3, 136, GRAPH_COLOR);
+    display.drawLine(pos*8 + 4, 145, pos*8 + 4, 136, GRAPH_COLOR);
+    display.drawLine(pos*8 + 5, 145, pos*8 + 5, 136, GRAPH_COLOR);
 
     // Show number of steps as text and bitmap
-    display.drawBitmap(5, 170, steps, 19, 23, FOREGROUND_COLOR);
-    display.setCursor(35, 192);
-    display.println(stepCount);
+    display.setFont(&FreeSans18pt7b);    
+    display.getTextBounds(String(step_count), 55, 195, &x1, &y1, &width, &height);
+    int8_t bitmap_pos = int(200-width)/2;
+    display.drawBitmap(bitmap_pos-15, 174, steps, 19, 23, FOREGROUND_COLOR);
+    display.setCursor(bitmap_pos+15, 195);
+    display.println(step_count);
 }
 
 
@@ -118,25 +133,9 @@ void WatchyStep::drawBattery(){
                           percentage > 50 ? 2 :
                           percentage > 35 ? 1 : 0;
         
-    display.drawBitmap(160, 170, battery, 37, 21, FOREGROUND_COLOR);
-    display.fillRect(160+5, 170+5, 27, 11, BACKGROUND_COLOR);//clear battery segments
+    display.drawBitmap(147, 15, battery, 37, 21, FOREGROUND_COLOR);
+    display.fillRect(147+5, 15+5, 27, 11, BACKGROUND_COLOR);//clear battery segments
     for(int8_t batterySegments = 0; batterySegments < batteryLevel; batterySegments++){
-        display.fillRect(160 + (batterySegments * 9), 170+5, 7, 11, FOREGROUND_COLOR);
+        display.fillRect(147 + (batterySegments * 9), 15+5, 7, 11, FOREGROUND_COLOR);
     }
-
-    /*display.setFont(&FreeSans12pt7b);
-    display.setCursor(130, 195);
-    display.print(percentage);
-    display.println("%");*/
-
-    /*
-    display.setFont(&FreeSans12pt7b);
-    display.setCursor(125, 125);
-    display.print(percentage);
-    display.println("%");
-
-    display.setFont(&FreeSans12pt7b);
-    display.setCursor(125, 150);
-    display.print(voltage);
-    display.println("V");*/
 }
