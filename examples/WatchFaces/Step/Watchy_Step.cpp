@@ -162,7 +162,6 @@ void WatchyStep::drawSteps(){
     }
 
     // Show current position
-    pos = 12;
     display.drawLine(4+pos*8 + 2, 140, 4+pos*8 + 2, 146, FOREGROUND_COLOR);
     display.drawLine(4+pos*8 + 3, 140, 4+pos*8 + 3, 146, FOREGROUND_COLOR);
     display.drawLine(4+pos*8 + 4, 140, 4+pos*8 + 4, 146, FOREGROUND_COLOR);
