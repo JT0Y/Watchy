@@ -99,7 +99,7 @@ void WatchyStep::drawDate(){
     uint16_t w, h;
 
     display.setFont(&FONT_MEDUM);
-    display.setCursor(15, 65);
+    display.setCursor(25, 65);
     String dayOfWeek = dayShortStr(currentTime.Wday);
     display.print(dayOfWeek);
     display.print(" ");
