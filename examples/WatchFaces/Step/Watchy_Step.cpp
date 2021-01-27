@@ -21,6 +21,7 @@
 RTC_DATA_ATTR int steps_hours[24] = {0};
 RTC_DATA_ATTR int last_step_count = 0;
 RTC_DATA_ATTR int rotation = 0;
+RTC_DATA_ATTR bool print_date = true;
 
 WatchyStep::WatchyStep(){
 
@@ -63,6 +64,13 @@ void WatchyStep::handleButtonPress(){
         showWatchFace(false);
         return;
     }
+
+    if(wakeupBit & UP_BTN_MASK && guiState == WATCHFACE_STATE){
+        print_date = print_date ? false : true;
+        RTC.read(currentTime);
+        showWatchFace(true);
+        return;
+    }
     
     Watchy::handleButtonPress();
 }
@@ -73,15 +81,18 @@ void WatchyStep::drawWatchFace(){
     display.fillScreen(BACKGROUND_COLOR);
     display.setTextColor(FOREGROUND_COLOR);
     drawTime();
-    drawDate();
     drawSteps();
-    drawBattery();
+    if(print_date){
+        drawDate();
+    } else {
+        drawBattery();
+    }
 }
 
 
 void WatchyStep::drawTime(){
     display.setFont(&FONT_LARGE_BOLD);
-    display.setCursor(15, 40);
+    display.setCursor(12, 40);
     if(currentTime.Hour < 10){
         display.print("0");
     }
@@ -99,11 +110,32 @@ void WatchyStep::drawDate(){
     uint16_t w, h;
 
     display.setFont(&FONT_MEDUM);
-    display.setCursor(25, 65);
+    display.setCursor(145, 23);
     String dayOfWeek = dayShortStr(currentTime.Wday);
-    display.print(dayOfWeek);
-    display.print(" ");
+    display.println(dayOfWeek);
+    display.setCursor(145, 43);
     display.println(currentTime.Day);
+}
+
+
+void WatchyStep::drawBattery(){
+    float voltage = getBatteryVoltage() + BATTERY_OFFSET;
+    
+    int8_t percentage = 2808.3808 * pow(voltage, 4) 
+                        - 43560.9157 * pow(voltage, 3) 
+                        + 252848.5888 * pow(voltage, 2) 
+                        - 650767.4615 * voltage 
+                        + 626532.5703;
+    percentage = min((int8_t) 99, percentage);
+    percentage = max((int8_t) 0, percentage);
+    
+    display.drawBitmap(150, 15, battery, 37, 21, FOREGROUND_COLOR);
+    display.setFont(&FONT_SMALL_BOLD);
+    display.setCursor(157, 31);
+    if(percentage < 10) {
+        display.print("0");
+    }
+    display.println(percentage);
 }
 
 
@@ -117,10 +149,18 @@ float WatchyStep::getMaxSteps(){
 
 
 void WatchyStep::drawSteps(){   
+    int8_t max_height = 70;
+
     // Bottom line
-    display.drawLine(5, 139, 195, 139, FOREGROUND_COLOR);
+    //display.drawLine(5, 139, 195, 139, FOREGROUND_COLOR);
     display.drawLine(5, 140, 195, 140, FOREGROUND_COLOR);
-    display.drawLine(5, 141, 195, 141, FOREGROUND_COLOR);
+    //display.drawLine(5, 141, 195, 141, FOREGROUND_COLOR);
+    //display.drawLine(5, 141, 195, 142, FOREGROUND_COLOR);
+
+    // Top line
+    //display.drawLine(5, 139-max_height, 195, 139-max_height, FOREGROUND_COLOR);
+    display.drawLine(5, 140-max_height, 195, 140-max_height, FOREGROUND_COLOR);
+    //display.drawLine(5, 141-max_height, 195, 141-max_height, FOREGROUND_COLOR);
 
     // Text of bottom line
     display.setFont(&FONT_SMALL);
@@ -150,11 +190,15 @@ void WatchyStep::drawSteps(){
         last_step_count = step_count;
     }    
     
-    float max_steps = getMaxSteps();
+    // Print max steps for y axis
+    uint32_t max_steps = getMaxSteps();
+    display.setCursor(12, 140-max_height-5);
+    display.print(max_steps);
+    display.println(" steps");
+
     for(int h=0; h < 24; h++){
         // Clean lines for current hour
-        int8_t max_height = 70;
-        int8_t relative_steps = max_height * float(steps_hours[h]) / (max_steps+1); // Numerical stability
+        uint32_t relative_steps = max_height * float(steps_hours[h]) / float(max_steps+1); // Numerical stability
         display.drawLine(4+h*8 + 2, 140, 4+h*8 + 2, 140-relative_steps, GRAPH_COLOR);
         display.drawLine(4+h*8 + 3, 140, 4+h*8 + 3, 140-relative_steps, GRAPH_COLOR);
         display.drawLine(4+h*8 + 4, 140, 4+h*8 + 4, 140-relative_steps, GRAPH_COLOR);
@@ -177,27 +221,6 @@ void WatchyStep::drawSteps(){
     display.setCursor(bitmap_pos+15, 192);
     display.println(step_count);
     display.setTextColor(FOREGROUND_COLOR);
-}
-
-
-void WatchyStep::drawBattery(){
-    float voltage = getBatteryVoltage() + BATTERY_OFFSET;
-    
-    int8_t percentage = 2808.3808 * pow(voltage, 4) 
-                        - 43560.9157 * pow(voltage, 3) 
-                        + 252848.5888 * pow(voltage, 2) 
-                        - 650767.4615 * voltage 
-                        + 626532.5703;
-    percentage = min((int8_t) 99, percentage);
-    percentage = max((int8_t) 0, percentage);
-    
-    display.drawBitmap(157, 5, battery, 37, 21, FOREGROUND_COLOR);
-    display.setFont(&FONT_SMALL_BOLD);
-    display.setCursor(164, 21);
-    if(percentage < 10) {
-        display.print("0");
-    }
-    display.println(percentage);
 }
 
 
