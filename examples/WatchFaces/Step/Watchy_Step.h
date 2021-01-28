@@ -25,6 +25,8 @@ class WatchyStep : public Watchy {
 
     private:
         float getMaxSteps();
+        void startNewDay();
+
         void _rtcConfig();    
         void _bmaConfig();
         static uint16_t _readRegister(uint8_t address, uint8_t reg, uint8_t *data, uint16_t len);

@@ -18,7 +18,8 @@
 
 // Store step in RTC RAM, otherwise we loose information between 
 // different interrupts
-RTC_DATA_ATTR int steps_hours[24] = {0};
+RTC_DATA_ATTR int steps_hours[24] = 0; //{20,20,15,13,12,11,10,9,8,7,0};
+RTC_DATA_ATTR int steps_hours_yesterday[24] = 0; //{5,5,5,5,5,5,10,15,20,30,35,30,30,25,14,13,12,5,13,0,0,0,0,0};
 RTC_DATA_ATTR int last_step_count = 0;
 RTC_DATA_ATTR int rotation = 0;
 RTC_DATA_ATTR bool print_date = true;
@@ -143,8 +144,20 @@ float WatchyStep::getMaxSteps(){
     float max_steps = -1;
     for(int i=0; i < 24; i++){
         max_steps = max(float(steps_hours[i]), max_steps);
+        max_steps = max(float(steps_hours_yesterday[i]), max_steps);
     }
     return max_steps;
+}
+
+
+void WatchyStep::startNewDay(){
+    for(int i=0; i < 24; i++){
+        steps_hours_yesterday[i] = steps_hours[i];
+        steps_hours[i] = 0;
+    }
+
+    sensor.resetStepCounter();
+    last_step_count = 0;
 }
 
 
@@ -152,15 +165,10 @@ void WatchyStep::drawSteps(){
     int8_t max_height = 70;
 
     // Bottom line
-    //display.drawLine(5, 139, 195, 139, FOREGROUND_COLOR);
     display.drawLine(5, 140, 195, 140, FOREGROUND_COLOR);
-    //display.drawLine(5, 141, 195, 141, FOREGROUND_COLOR);
-    //display.drawLine(5, 141, 195, 142, FOREGROUND_COLOR);
 
     // Top line
-    //display.drawLine(5, 139-max_height, 195, 139-max_height, FOREGROUND_COLOR);
     display.drawLine(5, 140-max_height, 195, 140-max_height, FOREGROUND_COLOR);
-    //display.drawLine(5, 141-max_height, 195, 141-max_height, FOREGROUND_COLOR);
 
     // Text of bottom line
     display.setFont(&FONT_SMALL);
@@ -176,9 +184,8 @@ void WatchyStep::drawSteps(){
 
     // We sleep for 1 minute so it could happen that we miss one minute.
     // To ensure that everything is fine we reset 2 minutes...
-    if(currentTime.Hour == 0 && currentTime.Minute <= 1){
-        sensor.resetStepCounter();
-        last_step_count = 0;
+    if(currentTime.Hour == 0 && currentTime.Minute == 0){
+        startNewDay();
     }
     
     // Lets write the absolute steps for this hour
@@ -203,6 +210,14 @@ void WatchyStep::drawSteps(){
         display.drawLine(4+h*8 + 3, 140, 4+h*8 + 3, 140-relative_steps, GRAPH_COLOR);
         display.drawLine(4+h*8 + 4, 140, 4+h*8 + 4, 140-relative_steps, GRAPH_COLOR);
         display.drawLine(4+h*8 + 5, 140, 4+h*8 + 5, 140-relative_steps, GRAPH_COLOR);
+
+        // Last day - only horizontal line
+        if(steps_hours_yesterday[h] > 0){
+            relative_steps = max_height * float(steps_hours_yesterday[h]) / float(max_steps+1);
+            uint16_t color = steps_hours[h] < steps_hours_yesterday[h] ? FOREGROUND_COLOR : BACKGROUND_COLOR;
+            display.drawLine(4+h*8 + 2, 140-relative_steps, 4+h*8 + 5, 140-relative_steps, color);
+            display.drawLine(4+h*8 + 2, 140-relative_steps-1, 4+h*8 + 5, 140-relative_steps-1, color);
+        }
     }
 
     // Show current position
