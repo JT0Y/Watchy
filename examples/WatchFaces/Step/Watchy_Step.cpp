@@ -183,8 +183,8 @@ void WatchyStep::drawSteps(){
     
     // Lets write the absolute steps for this hour
     uint32_t step_count = sensor.getCounter();
-    uint8_t pos = currentTime.Hour > 0 ? currentTime.Hour-1 : 23;
-    steps_hours[pos] = step_count - last_step_count;
+    uint8_t last_h = currentTime.Hour > 0 ? currentTime.Hour-1 : 23;
+    steps_hours[last_h] = step_count - last_step_count;
     
     if(currentTime.Minute <= 1){
         last_step_count = step_count;
@@ -206,10 +206,10 @@ void WatchyStep::drawSteps(){
     }
 
     // Show current position
-    display.drawLine(4+pos*8 + 2, 140, 4+pos*8 + 2, 146, FOREGROUND_COLOR);
-    display.drawLine(4+pos*8 + 3, 140, 4+pos*8 + 3, 146, FOREGROUND_COLOR);
-    display.drawLine(4+pos*8 + 4, 140, 4+pos*8 + 4, 146, FOREGROUND_COLOR);
-    display.drawLine(4+pos*8 + 5, 140, 4+pos*8 + 5, 146, FOREGROUND_COLOR);
+    display.drawLine(4+currentTime.Hour*8 + 2, 140, 4+currentTime.Hour*8 + 2, 146, FOREGROUND_COLOR);
+    display.drawLine(4+currentTime.Hour*8 + 3, 140, 4+currentTime.Hour*8 + 3, 146, FOREGROUND_COLOR);
+    display.drawLine(4+currentTime.Hour*8 + 4, 140, 4+currentTime.Hour*8 + 4, 146, FOREGROUND_COLOR);
+    display.drawLine(4+currentTime.Hour*8 + 5, 140, 4+currentTime.Hour*8 + 5, 146, FOREGROUND_COLOR);
 
     // Show number of steps as text and bitmap
     display.fillRect(0, 170, 200, 200, FOREGROUND_COLOR);
