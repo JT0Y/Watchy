@@ -20,7 +20,6 @@
 // different interrupts
 RTC_DATA_ATTR int steps_hours[24] = {0}; //{20,20,15,13,12,11,10,9,8,7,0};
 RTC_DATA_ATTR int steps_hours_yesterday[24] = {0}; //{5,5,5,5,5,5,10,15,20,30,35,30,30,25,14,13,12,5,13,0,0,0,0,0};
-RTC_DATA_ATTR int last_step_count = 0;
 RTC_DATA_ATTR int rotation = 0;
 RTC_DATA_ATTR bool print_date = true;
 
@@ -67,9 +66,15 @@ void WatchyStep::handleButtonPress(){
     }
 
     if(wakeupBit & UP_BTN_MASK && guiState == WATCHFACE_STATE){
-        print_date = print_date ? false : true;
+        print_date ^= print_date;
         RTC.read(currentTime);
         showWatchFace(true);
+        return;
+    }
+
+    if(wakeupBit & DOWN_BTN_MASK && guiState == WATCHFACE_STATE){
+        RTC.read(currentTime);
+        vibTime();
         return;
     }
     
@@ -77,10 +82,46 @@ void WatchyStep::handleButtonPress(){
 }
 
 
+void WatchyStep::vibTime(){
+    pinMode(VIB_MOTOR_PIN, OUTPUT);
+
+    // Hours
+    uint8_t h_5_buzz = currentTime.Hour/5;
+    for(int8_t i=0; i < h_5_buzz; i++){
+        digitalWrite(VIB_MOTOR_PIN, true);
+        delay(400);
+        digitalWrite(VIB_MOTOR_PIN, false);
+        delay(400);
+    }
+
+    uint8_t h_1_buzz = currentTime.Hour - h_5_buzz * 5;
+    for(int8_t i=0; i < h_1_buzz; i++){
+        digitalWrite(VIB_MOTOR_PIN, true);
+        delay(200);
+        digitalWrite(VIB_MOTOR_PIN, false);
+        delay(200);
+    }
+    
+    // 10-Minutes
+    delay(2000);
+
+    uint8_t m_10_buzz = currentTime.Minute / 10;
+    for(int8_t i=0; i < m_10_buzz; i++){
+        digitalWrite(VIB_MOTOR_PIN, true);
+        delay(200);
+        digitalWrite(VIB_MOTOR_PIN, false);
+        delay(200);
+    }
+}
+
 void WatchyStep::drawWatchFace(){
     display.setRotation(rotation);
     display.fillScreen(BACKGROUND_COLOR);
     display.setTextColor(FOREGROUND_COLOR);
+    for(uint8_t i=0; i<4; i++){
+        display.drawRoundRect(0+i, 0+i, 196, 196, 4, FOREGROUND_COLOR);
+    }
+
     drawTime();
     drawSteps();
     if(print_date){
@@ -93,7 +134,7 @@ void WatchyStep::drawWatchFace(){
 
 void WatchyStep::drawTime(){
     display.setFont(&FONT_LARGE_BOLD);
-    display.setCursor(12, 40);
+    display.setCursor(12, 42);
     if(currentTime.Hour < 10){
         display.print("0");
     }
@@ -111,10 +152,10 @@ void WatchyStep::drawDate(){
     uint16_t w, h;
 
     display.setFont(&FONT_MEDUM);
-    display.setCursor(145, 23);
+    display.setCursor(145, 25);
     String dayOfWeek = dayShortStr(currentTime.Wday);
     display.println(dayOfWeek);
-    display.setCursor(145, 43);
+    display.setCursor(145, 45);
     display.println(currentTime.Day);
 }
 
@@ -155,9 +196,15 @@ void WatchyStep::startNewDay(){
         steps_hours_yesterday[i] = steps_hours[i];
         steps_hours[i] = 0;
     }
+}
 
-    sensor.resetStepCounter();
-    last_step_count = 0;
+
+int32_t WatchyStep::getStepsOfDay(){
+    int32_t steps = 0;
+    for(int i=0; i < 24; i++){
+        steps += steps_hours[i];
+    }
+    return steps;
 }
 
 
@@ -168,7 +215,7 @@ void WatchyStep::drawSteps(){
     display.drawLine(5, 140, 195, 140, FOREGROUND_COLOR);
 
     // Top line
-    display.drawLine(5, 140-max_height, 195, 140-max_height, FOREGROUND_COLOR);
+    //display.drawLine(5, 140-max_height, 195, 140-max_height, FOREGROUND_COLOR);
 
     // Text of bottom line
     display.setFont(&FONT_SMALL);
@@ -187,15 +234,14 @@ void WatchyStep::drawSteps(){
     if(currentTime.Hour == 0 && currentTime.Minute == 0){
         startNewDay();
     }
+
+    // Whenever we have a new hour, we can restart our step counting
+    if(currentTime.Minute == 0){
+        sensor.resetStepCounter();
+    }
     
-    // Lets write the absolute steps for this hour
-    uint32_t step_count = sensor.getCounter();
-    uint8_t last_h = currentTime.Hour > 0 ? currentTime.Hour-1 : 23;
-    steps_hours[last_h] = step_count - last_step_count;
-    
-    if(currentTime.Minute <= 1){
-        last_step_count = step_count;
-    }    
+    // Lets write the number of steps that we had this hour
+    steps_hours[currentTime.Hour] = sensor.getCounter();
     
     // Print max steps for y axis
     uint32_t max_steps = getMaxSteps();
@@ -220,21 +266,21 @@ void WatchyStep::drawSteps(){
         }
     }
 
-    // Show current position
-    display.drawLine(4+currentTime.Hour*8 + 2, 140, 4+currentTime.Hour*8 + 2, 146, FOREGROUND_COLOR);
+    // Small indicator for current position
     display.drawLine(4+currentTime.Hour*8 + 3, 140, 4+currentTime.Hour*8 + 3, 146, FOREGROUND_COLOR);
     display.drawLine(4+currentTime.Hour*8 + 4, 140, 4+currentTime.Hour*8 + 4, 146, FOREGROUND_COLOR);
-    display.drawLine(4+currentTime.Hour*8 + 5, 140, 4+currentTime.Hour*8 + 5, 146, FOREGROUND_COLOR);
 
     // Show number of steps as text and bitmap
-    display.fillRect(0, 170, 200, 200, FOREGROUND_COLOR);
+    int32_t step_count_day = getStepsOfDay();
+    display.fillRect(0, 170, 196, 26, FOREGROUND_COLOR);
+
     display.setTextColor(BACKGROUND_COLOR);
     display.setFont(&FONT_MEDUM_BOLD);    
-    display.getTextBounds(String(step_count), 55, 195, &x1, &y1, &width, &height);
+    display.getTextBounds(String(step_count_day), 55, 195, &x1, &y1, &width, &height);
     int8_t bitmap_pos = int(200-width)/2;
     display.drawBitmap(bitmap_pos-15, 174, steps, 19, 23, BACKGROUND_COLOR);
     display.setCursor(bitmap_pos+15, 192);
-    display.println(step_count);
+    display.println(step_count_day);
     display.setTextColor(FOREGROUND_COLOR);
 }
 

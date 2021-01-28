@@ -26,6 +26,8 @@ class WatchyStep : public Watchy {
     private:
         float getMaxSteps();
         void startNewDay();
+        int32_t getStepsOfDay();
+        void vibTime();
 
         void _rtcConfig();    
         void _bmaConfig();
