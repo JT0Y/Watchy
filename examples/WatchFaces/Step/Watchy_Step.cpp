@@ -237,7 +237,7 @@ void WatchyStep::drawSteps(){
 
     // Whenever we have a new hour, we can restart our step counting
     if(currentTime.Minute == 0){
-        int8_t last_hour = 23 if currentTime.Hour < 1 else currentTime.Hour-1;
+        int8_t last_hour = currentTime.Hour < 1 ? 23 : currentTime.Hour-1;
         steps_hours[last_hour] = sensor.getCounter();
         sensor.resetStepCounter();
     }
