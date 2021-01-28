@@ -18,8 +18,8 @@
 
 // Store step in RTC RAM, otherwise we loose information between 
 // different interrupts
-RTC_DATA_ATTR int steps_hours[24] = 0; //{20,20,15,13,12,11,10,9,8,7,0};
-RTC_DATA_ATTR int steps_hours_yesterday[24] = 0; //{5,5,5,5,5,5,10,15,20,30,35,30,30,25,14,13,12,5,13,0,0,0,0,0};
+RTC_DATA_ATTR int steps_hours[24] = {0}; //{20,20,15,13,12,11,10,9,8,7,0};
+RTC_DATA_ATTR int steps_hours_yesterday[24] = {0}; //{5,5,5,5,5,5,10,15,20,30,35,30,30,25,14,13,12,5,13,0,0,0,0,0};
 RTC_DATA_ATTR int last_step_count = 0;
 RTC_DATA_ATTR int rotation = 0;
 RTC_DATA_ATTR bool print_date = true;
