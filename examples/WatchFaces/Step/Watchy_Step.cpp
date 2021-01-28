@@ -239,11 +239,11 @@ void WatchyStep::drawSteps(){
     if(currentTime.Minute == 0){
         int8_t last_hour = currentTime.Hour < 1 ? 23 : currentTime.Hour-1;
         steps_hours[last_hour] = sensor.getCounter();
+        steps_hours[currentTime.Hour] = 0;
         sensor.resetStepCounter();
+    } else {
+        steps_hours[currentTime.Hour] = sensor.getCounter();
     }
-    
-    // Lets write the number of steps that we had this hour
-    steps_hours[currentTime.Hour] = sensor.getCounter();
     
     // Print max steps for y axis
     uint32_t max_steps = getMaxSteps();
