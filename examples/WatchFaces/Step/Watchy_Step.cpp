@@ -66,7 +66,7 @@ void WatchyStep::handleButtonPress(){
     }
 
     if(wakeupBit & UP_BTN_MASK && guiState == WATCHFACE_STATE){
-        print_date ^= print_date;
+        print_date = print_date == true ? false : true;
         RTC.read(currentTime);
         showWatchFace(true);
         return;
@@ -152,10 +152,10 @@ void WatchyStep::drawDate(){
     uint16_t w, h;
 
     display.setFont(&FONT_MEDUM);
-    display.setCursor(145, 25);
+    display.setCursor(140, 25);
     String dayOfWeek = dayShortStr(currentTime.Wday);
     display.println(dayOfWeek);
-    display.setCursor(145, 45);
+    display.setCursor(140, 45);
     display.println(currentTime.Day);
 }
 
@@ -171,9 +171,9 @@ void WatchyStep::drawBattery(){
     percentage = min((int8_t) 99, percentage);
     percentage = max((int8_t) 0, percentage);
     
-    display.drawBitmap(150, 15, battery, 37, 21, FOREGROUND_COLOR);
+    display.drawBitmap(145, 15, battery, 37, 21, FOREGROUND_COLOR);
     display.setFont(&FONT_SMALL_BOLD);
-    display.setCursor(157, 31);
+    display.setCursor(152, 31);
     if(percentage < 10) {
         display.print("0");
     }
