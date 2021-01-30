@@ -152,10 +152,16 @@ void WatchyStep::drawDate(){
     uint16_t w, h;
 
     display.setFont(&FONT_MEDUM);
-    display.setCursor(140, 25);
     String dayOfWeek = dayShortStr(currentTime.Wday);
+    display.getTextBounds(dayOfWeek, 55, 195, &x1, &y1, &w, &h);
+    display.setCursor(200-20-w, 25);
     display.println(dayOfWeek);
-    display.setCursor(140, 45);
+
+    display.getTextBounds("00", 55, 195, &x1, &y1, &w, &h);
+    display.setCursor(200-20-w, 45);
+    if(currentTime.Day < 10){
+        display.print("0");    
+    }
     display.println(currentTime.Day);
 }
 
