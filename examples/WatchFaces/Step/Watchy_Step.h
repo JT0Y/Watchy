@@ -24,6 +24,8 @@ class WatchyStep : public Watchy {
 
 
     private:
+        esp_sleep_wakeup_cause_t wakeup_reason;
+        
         float getMaxSteps();
         void startNewDay();
         int32_t getStepsOfDay();

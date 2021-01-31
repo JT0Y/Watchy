@@ -35,7 +35,6 @@ WatchyStep::WatchyStep(){
 
 
 void WatchyStep::init(){
-    esp_sleep_wakeup_cause_t wakeup_reason;
     wakeup_reason = esp_sleep_get_wakeup_cause(); //get wake up reason
     Wire.begin(SDA, SCL); //init i2c
 
@@ -250,6 +249,7 @@ int32_t WatchyStep::getStepsOfDay(){
 
 
 void WatchyStep::drawSteps(){   
+    bool rtc_alarm = wakeup_reason == ESP_SLEEP_WAKEUP_EXT0;
     int8_t max_height = 70;
 
     // Bottom line
@@ -272,12 +272,14 @@ void WatchyStep::drawSteps(){
 
     // We sleep for 1 minute so it could happen that we miss one minute.
     // To ensure that everything is fine we reset 2 minutes...
-    if(currentTime.Hour == 0 && currentTime.Minute == 0){
+    // But only if its an rtc alarm - ignore button press etc.
+    if(rtc_alarm && currentTime.Hour == 0 && currentTime.Minute == 0){
         startNewDay();
     }
 
-    // Whenever we have a new hour, we can restart our step counting
-    if(currentTime.Minute == 0){
+    // Whenever we have a new hour, we can restart our step counting.
+    // But only if its an rtc alarm - ignore button press etc.
+    if(rtc_alarm && currentTime.Minute == 0){
         int8_t last_hour = currentTime.Hour < 1 ? 23 : currentTime.Hour-1;
         steps_hours[last_hour] = sensor.getCounter();
         steps_hours[currentTime.Hour] = 0;
