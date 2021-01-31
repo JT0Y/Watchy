@@ -1,17 +1,6 @@
 #include "Watchy_Base.h"
 
 
-// Color settings
-#define DARKMODE            false
-#define FOREGROUND_COLOR    (DARKMODE ? GxEPD_WHITE : GxEPD_BLACK)
-#define BACKGROUND_COLOR    (DARKMODE ? GxEPD_BLACK : GxEPD_WHITE)
-#define GRAPH_COLOR         FOREGROUND_COLOR
-#define BATTERY_OFFSET      0.25
-
-// Other settings 
-#define DOUBLE_TAP_TIME     3   // Time between two double taps
-#define EXT_INT_MASK        MENU_BTN_MASK|BACK_BTN_MASK|UP_BTN_MASK|DOWN_BTN_MASK|ACC_INT_MASK
-
 // Store in RTC RAM, otherwise we loose information between different interrupts
 RTC_DATA_ATTR uint8_t rotation = 0;
 RTC_DATA_ATTR time_t lastDoubleTap;
