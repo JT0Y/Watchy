@@ -23,6 +23,13 @@ RTC_DATA_ATTR int steps_hours_yesterday[24] = {0}; //{5,5,5,5,5,5,10,15,20,30,35
 RTC_DATA_ATTR int rotation = 0;
 RTC_DATA_ATTR bool print_date = true;
 
+RTC_DATA_ATTR int double_taps = 0;
+RTC_DATA_ATTR int wakeups = 0;
+
+// Wakeup external interrupt
+#define EXT_INT_MASK MENU_BTN_MASK|BACK_BTN_MASK|UP_BTN_MASK|DOWN_BTN_MASK|ACC_INT_MASK
+
+
 WatchyStep::WatchyStep(){
 
 }
@@ -31,6 +38,7 @@ void WatchyStep::init(){
     esp_sleep_wakeup_cause_t wakeup_reason;
     wakeup_reason = esp_sleep_get_wakeup_cause(); //get wake up reason
     Wire.begin(SDA, SCL); //init i2c
+    wakeups += 1;
 
     switch (wakeup_reason)
     {
@@ -39,8 +47,6 @@ void WatchyStep::init(){
             if(guiState == WATCHFACE_STATE){
                 RTC.read(currentTime);
                 showWatchFace(true); //partial updates on tick
-            }else{
-            //
             }
             break;
         case ESP_SLEEP_WAKEUP_EXT1: //button Press
@@ -56,8 +62,26 @@ void WatchyStep::init(){
 }
 
 
+void WatchyStep::deepSleep(){
+  esp_sleep_enable_ext0_wakeup(RTC_PIN, 0); //enable deep sleep wake on RTC interrupt
+  esp_sleep_enable_ext1_wakeup(EXT_INT_MASK, ESP_EXT1_WAKEUP_ANY_HIGH); //enable deep sleep wake on button press
+  esp_deep_sleep_start();
+}
+
 void WatchyStep::handleButtonPress(){
     uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
+
+    if (wakeupBit & ACC_INT_MASK && guiState == WATCHFACE_STATE){
+        while(!sensor.getINT()){
+            // Wait until interrupt is cleared.
+            // Otherwise if will fire again and again.
+        }
+        double_taps += 1;
+        RTC.read(currentTime);
+        showWatchFace(true);
+        return;
+    }
+
     if (wakeupBit & BACK_BTN_MASK && guiState == WATCHFACE_STATE){
         rotation = rotation == 2 ? 0 : 2;
         RTC.read(currentTime);
@@ -255,7 +279,10 @@ void WatchyStep::drawSteps(){
     uint32_t max_steps = getMaxSteps();
     display.setCursor(12, 140-max_height-5);
     display.print(max_steps);
-    display.println(" steps");
+    display.print(" steps  dt:");
+    display.print(double_taps);
+    display.print("  wu:");
+    display.println(wakeups);
 
     for(int h=0; h < 24; h++){
         // Clean lines for current hour
@@ -393,8 +420,8 @@ void WatchyStep::_bmaConfig(){
     sensor.resetStepCounter();
 
     // Turn on feature interrupt
-    sensor.enableStepCountInterrupt();
-    sensor.enableTiltInterrupt();
+    //sensor.enableStepCountInterrupt();
+    //sensor.enableTiltInterrupt();
     // It corresponds to isDoubleClick interrupt
     sensor.enableWakeupInterrupt();  
 }

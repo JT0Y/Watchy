@@ -28,6 +28,7 @@ class WatchyStep : public Watchy {
         void startNewDay();
         int32_t getStepsOfDay();
         void vibTime();
+        void deepSleep();
 
         void _rtcConfig();    
         void _bmaConfig();
