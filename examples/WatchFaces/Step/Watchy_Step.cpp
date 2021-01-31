@@ -16,29 +16,28 @@
 #define FONT_SMALL_BOLD  FreeSansBold9pt7b
 #define FONT_SMALL       FreeSans9pt7b
 
-// Store step in RTC RAM, otherwise we loose information between 
-// different interrupts
-RTC_DATA_ATTR int steps_hours[24] = {0}; //{20,20,15,13,12,11,10,9,8,7,0};
-RTC_DATA_ATTR int steps_hours_yesterday[24] = {0}; //{5,5,5,5,5,5,10,15,20,30,35,30,30,25,14,13,12,5,13,0,0,0,0,0};
-RTC_DATA_ATTR int rotation = 0;
+// Other settings 
+#define DOUBLE_TAP_TIME     3   // Time between two double taps
+#define EXT_INT_MASK        MENU_BTN_MASK|BACK_BTN_MASK|UP_BTN_MASK|DOWN_BTN_MASK|ACC_INT_MASK
+
+// Store in RTC RAM, otherwise we loose information between different interrupts
+RTC_DATA_ATTR uint32_t steps_hours[24] = {0}; //{20,20,15,13,12,11,10,9,8,7,0};
+RTC_DATA_ATTR uint32_t steps_hours_yesterday[24] = {0}; //{5,5,5,5,5,5,10,15,20,30,35,30,30,25,14,13,12,5,13,0,0,0,0,0};
+RTC_DATA_ATTR uint8_t rotation = 0;
 RTC_DATA_ATTR bool print_date = true;
+RTC_DATA_ATTR time_t lastDoubleTap;
 
-RTC_DATA_ATTR int double_taps = 0;
-RTC_DATA_ATTR int wakeups = 0;
-
-// Wakeup external interrupt
-#define EXT_INT_MASK MENU_BTN_MASK|BACK_BTN_MASK|UP_BTN_MASK|DOWN_BTN_MASK|ACC_INT_MASK
 
 
 WatchyStep::WatchyStep(){
 
 }
 
+
 void WatchyStep::init(){
     esp_sleep_wakeup_cause_t wakeup_reason;
     wakeup_reason = esp_sleep_get_wakeup_cause(); //get wake up reason
     Wire.begin(SDA, SCL); //init i2c
-    wakeups += 1;
 
     switch (wakeup_reason)
     {
@@ -68,6 +67,7 @@ void WatchyStep::deepSleep(){
   esp_deep_sleep_start();
 }
 
+
 void WatchyStep::handleButtonPress(){
     uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
 
@@ -76,9 +76,20 @@ void WatchyStep::handleButtonPress(){
             // Wait until interrupt is cleared.
             // Otherwise if will fire again and again.
         }
-        double_taps += 1;
+
         RTC.read(currentTime);
-        showWatchFace(true);
+        time_t now = makeTime(currentTime);
+        bool gestureDetected = (now - lastDoubleTap) < DOUBLE_TAP_TIME;
+        lastDoubleTap = now;
+        
+        pinMode(VIB_MOTOR_PIN, OUTPUT);
+        if(gestureDetected){
+            digitalWrite(VIB_MOTOR_PIN, true);
+            delay(1000);
+            digitalWrite(VIB_MOTOR_PIN, false);
+            // ToDo: IOT control device
+        }
+
         return;
     }
 
@@ -277,12 +288,9 @@ void WatchyStep::drawSteps(){
     
     // Print max steps for y axis
     uint32_t max_steps = getMaxSteps();
-    display.setCursor(12, 140-max_height-5);
+    display.setCursor(20, 140-max_height-5);
     display.print(max_steps);
-    display.print(" steps  dt:");
-    display.print(double_taps);
-    display.print("  wu:");
-    display.println(wakeups);
+    display.println(" steps");
 
     for(int h=0; h < 24; h++){
         // Clean lines for current hour
