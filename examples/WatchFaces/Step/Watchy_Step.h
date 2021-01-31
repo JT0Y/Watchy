@@ -1,16 +1,12 @@
-#ifndef WATCHY_7_SEG_H
-#define WATCHY_7_SEG_H
+#ifndef WATCHY_STEP_H
+#define WATCHY_STEP_H
 
-#include <Watchy.h>
-#include <Fonts/FreeSansBold24pt7b.h>
-#include <Fonts/FreeSansBold12pt7b.h>
-#include <Fonts/FreeSansBold9pt7b.h>
-#include <Fonts/FreeSans12pt7b.h>
-#include <Fonts/FreeSans9pt7b.h>
+#include "Watchy_Base.h"
 #include "icons.h"
+#include "fonts.h"
 
-
-class WatchyStep : public Watchy {
+class WatchyStep : public WatchyBase {
+    
     public:
         WatchyStep();
         void drawWatchFace();
@@ -18,10 +14,7 @@ class WatchyStep : public Watchy {
         void drawDate();
         void drawSteps();
         void drawBattery();
-
-        void init();
         void handleButtonPress();
-
 
     private:
         esp_sleep_wakeup_cause_t wakeup_reason;
@@ -29,8 +22,6 @@ class WatchyStep : public Watchy {
         float getMaxSteps();
         void startNewDay();
         int32_t getStepsOfDay();
-        void vibTime();
-        void deepSleep();
 
         void _rtcConfig();    
         void _bmaConfig();

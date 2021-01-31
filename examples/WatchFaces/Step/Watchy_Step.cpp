@@ -1,13 +1,6 @@
 #include "Watchy_Step.h"
 
 
-// Color settings
-#define DARKMODE            false
-#define FOREGROUND_COLOR    (DARKMODE ? GxEPD_WHITE : GxEPD_BLACK)
-#define BACKGROUND_COLOR    (DARKMODE ? GxEPD_BLACK : GxEPD_WHITE)
-#define GRAPH_COLOR         FOREGROUND_COLOR
-#define BATTERY_OFFSET      0.25
-
 // For more fonts look here:
 // https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
 #define FONT_LARGE_BOLD  FreeSansBold24pt7b
@@ -16,16 +9,10 @@
 #define FONT_SMALL_BOLD  FreeSansBold9pt7b
 #define FONT_SMALL       FreeSans9pt7b
 
-// Other settings 
-#define DOUBLE_TAP_TIME     3   // Time between two double taps
-#define EXT_INT_MASK        MENU_BTN_MASK|BACK_BTN_MASK|UP_BTN_MASK|DOWN_BTN_MASK|ACC_INT_MASK
-
 // Store in RTC RAM, otherwise we loose information between different interrupts
 RTC_DATA_ATTR uint32_t steps_hours[24] = {0}; //{20,20,15,13,12,11,10,9,8,7,0};
 RTC_DATA_ATTR uint32_t steps_hours_yesterday[24] = {0}; //{5,5,5,5,5,5,10,15,20,30,35,30,30,25,14,13,12,5,13,0,0,0,0,0};
-RTC_DATA_ATTR uint8_t rotation = 0;
 RTC_DATA_ATTR bool print_date = true;
-RTC_DATA_ATTR time_t lastDoubleTap;
 
 
 
@@ -34,124 +21,22 @@ WatchyStep::WatchyStep(){
 }
 
 
-void WatchyStep::init(){
-    wakeup_reason = esp_sleep_get_wakeup_cause(); //get wake up reason
-    Wire.begin(SDA, SCL); //init i2c
-
-    switch (wakeup_reason)
-    {
-        case ESP_SLEEP_WAKEUP_EXT0: //RTC Alarm
-            RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
-            if(guiState == WATCHFACE_STATE){
-                RTC.read(currentTime);
-                showWatchFace(true); //partial updates on tick
-            }
-            break;
-        case ESP_SLEEP_WAKEUP_EXT1: //button Press
-            handleButtonPress();
-            break;
-        default: //reset
-            _rtcConfig();
-            _bmaConfig();
-            showWatchFace(false); //full update on reset
-            break;
-    }
-    deepSleep();
-}
-
-
-void WatchyStep::deepSleep(){
-  esp_sleep_enable_ext0_wakeup(RTC_PIN, 0); //enable deep sleep wake on RTC interrupt
-  esp_sleep_enable_ext1_wakeup(EXT_INT_MASK, ESP_EXT1_WAKEUP_ANY_HIGH); //enable deep sleep wake on button press
-  esp_deep_sleep_start();
-}
-
-
 void WatchyStep::handleButtonPress(){
+    WatchyBase::handleButtonPress();
+    
     uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
-
-    if (wakeupBit & ACC_INT_MASK && guiState == WATCHFACE_STATE){
-        while(!sensor.getINT()){
-            // Wait until interrupt is cleared.
-            // Otherwise if will fire again and again.
-        }
-
-        RTC.read(currentTime);
-        time_t now = makeTime(currentTime);
-        bool gestureDetected = (now - lastDoubleTap) < DOUBLE_TAP_TIME;
-        lastDoubleTap = now;
-        
-        pinMode(VIB_MOTOR_PIN, OUTPUT);
-        if(gestureDetected){
-            digitalWrite(VIB_MOTOR_PIN, true);
-            delay(1000);
-            digitalWrite(VIB_MOTOR_PIN, false);
-            // ToDo: IOT control device
-        }
-
-        return;
-    }
-
-    if (wakeupBit & BACK_BTN_MASK && guiState == WATCHFACE_STATE){
-        rotation = rotation == 2 ? 0 : 2;
-        RTC.read(currentTime);
-        showWatchFace(false);
-        return;
-    }
-
     if(wakeupBit & UP_BTN_MASK && guiState == WATCHFACE_STATE){
         print_date = print_date == true ? false : true;
         RTC.read(currentTime);
         showWatchFace(true);
         return;
     }
-
-    if(wakeupBit & DOWN_BTN_MASK && guiState == WATCHFACE_STATE){
-        RTC.read(currentTime);
-        vibTime();
-        return;
-    }
-    
-    Watchy::handleButtonPress();
 }
 
-
-void WatchyStep::vibTime(){
-    pinMode(VIB_MOTOR_PIN, OUTPUT);
-
-    // Hours
-    uint8_t h_5_buzz = currentTime.Hour/5;
-    for(int8_t i=0; i < h_5_buzz; i++){
-        digitalWrite(VIB_MOTOR_PIN, true);
-        delay(400);
-        digitalWrite(VIB_MOTOR_PIN, false);
-        delay(400);
-    }
-
-    uint8_t h_1_buzz = currentTime.Hour - h_5_buzz * 5;
-    for(int8_t i=0; i < h_1_buzz; i++){
-        digitalWrite(VIB_MOTOR_PIN, true);
-        delay(200);
-        digitalWrite(VIB_MOTOR_PIN, false);
-        delay(200);
-    }
-    
-    // 10-Minutes
-    delay(2000);
-
-    uint8_t m_10_buzz = currentTime.Minute / 10;
-    for(int8_t i=0; i < m_10_buzz; i++){
-        digitalWrite(VIB_MOTOR_PIN, true);
-        delay(200);
-        digitalWrite(VIB_MOTOR_PIN, false);
-        delay(200);
-    }
-}
 
 void WatchyStep::drawWatchFace(){
-    display.setRotation(rotation);
-    display.fillScreen(BACKGROUND_COLOR);
-    display.setTextColor(FOREGROUND_COLOR);
+    WatchyBase::drawWatchFace();
+
     for(uint8_t i=0; i<4; i++){
         display.drawRoundRect(0+i, 0+i, 196, 196, 4, FOREGROUND_COLOR);
     }
@@ -200,17 +85,9 @@ void WatchyStep::drawDate(){
 }
 
 
-void WatchyStep::drawBattery(){
-    float voltage = getBatteryVoltage() + BATTERY_OFFSET;
-    
-    int8_t percentage = 2808.3808 * pow(voltage, 4) 
-                        - 43560.9157 * pow(voltage, 3) 
-                        + 252848.5888 * pow(voltage, 2) 
-                        - 650767.4615 * voltage 
-                        + 626532.5703;
-    percentage = min((int8_t) 99, percentage);
-    percentage = max((int8_t) 0, percentage);
-    
+void WatchyStep::drawBattery(){   
+    int8_t percentage = getBattery();
+    percentage = min((int8_t) 99, percentage);    
     display.drawBitmap(145, 15, battery, 37, 21, FOREGROUND_COLOR);
     display.setFont(&FONT_SMALL_BOLD);
     display.setCursor(152, 31);
@@ -254,9 +131,6 @@ void WatchyStep::drawSteps(){
 
     // Bottom line
     display.drawLine(5, 140, 195, 140, FOREGROUND_COLOR);
-
-    // Top line
-    //display.drawLine(5, 140-max_height, 195, 140-max_height, FOREGROUND_COLOR);
 
     // Text of bottom line
     display.setFont(&FONT_SMALL);
@@ -327,133 +201,4 @@ void WatchyStep::drawSteps(){
     display.setCursor(bitmap_pos+15, 192);
     display.println(step_count_day);
     display.setTextColor(FOREGROUND_COLOR);
-}
-
-
-void WatchyStep::_rtcConfig(){
-    //https://github.com/JChristensen/DS3232RTC
-    RTC.squareWave(SQWAVE_NONE); //disable square wave output
-    //RTC.set(compileTime()); //set RTC time to compile time
-    RTC.setAlarm(ALM2_EVERY_MINUTE, 0, 0, 0, 0); //alarm wakes up Watchy every minute
-    RTC.alarmInterrupt(ALARM_2, true); //enable alarm interrupt
-    RTC.read(currentTime);
-}
-
-
-void WatchyStep::_bmaConfig(){
- 
-    if (sensor.begin(_readRegister, _writeRegister, delay) == false) {
-        //fail to init BMA
-        return;
-    }
-
-    // Accel parameter structure
-    Acfg cfg;
-    /*!
-        Output data rate in Hz, Optional parameters:
-            - BMA4_OUTPUT_DATA_RATE_0_78HZ
-            - BMA4_OUTPUT_DATA_RATE_1_56HZ
-            - BMA4_OUTPUT_DATA_RATE_3_12HZ
-            - BMA4_OUTPUT_DATA_RATE_6_25HZ
-            - BMA4_OUTPUT_DATA_RATE_12_5HZ
-            - BMA4_OUTPUT_DATA_RATE_25HZ
-            - BMA4_OUTPUT_DATA_RATE_50HZ
-            - BMA4_OUTPUT_DATA_RATE_100HZ
-            - BMA4_OUTPUT_DATA_RATE_200HZ
-            - BMA4_OUTPUT_DATA_RATE_400HZ
-            - BMA4_OUTPUT_DATA_RATE_800HZ
-            - BMA4_OUTPUT_DATA_RATE_1600HZ
-    */
-    cfg.odr = BMA4_OUTPUT_DATA_RATE_100HZ;
-    /*!
-        G-range, Optional parameters:
-            - BMA4_ACCEL_RANGE_2G
-            - BMA4_ACCEL_RANGE_4G
-            - BMA4_ACCEL_RANGE_8G
-            - BMA4_ACCEL_RANGE_16G
-    */
-    cfg.range = BMA4_ACCEL_RANGE_2G;
-    /*!
-        Bandwidth parameter, determines filter configuration, Optional parameters:
-            - BMA4_ACCEL_OSR4_AVG1
-            - BMA4_ACCEL_OSR2_AVG2
-            - BMA4_ACCEL_NORMAL_AVG4
-            - BMA4_ACCEL_CIC_AVG8
-            - BMA4_ACCEL_RES_AVG16
-            - BMA4_ACCEL_RES_AVG32
-            - BMA4_ACCEL_RES_AVG64
-            - BMA4_ACCEL_RES_AVG128
-    */
-    cfg.bandwidth = BMA4_ACCEL_NORMAL_AVG4;
-
-    /*! Filter performance mode , Optional parameters:
-        - BMA4_CIC_AVG_MODE
-        - BMA4_CONTINUOUS_MODE
-    */
-    cfg.perf_mode = BMA4_CONTINUOUS_MODE;
-
-    // Configure the BMA423 accelerometer
-    sensor.setAccelConfig(cfg);
-
-    // Enable BMA423 accelerometer
-    // Warning : Need to use feature, you must first enable the accelerometer
-    // Warning : Need to use feature, you must first enable the accelerometer
-    sensor.enableAccel();
-
-    struct bma4_int_pin_config config ;
-    config.edge_ctrl = BMA4_LEVEL_TRIGGER;
-    config.lvl = BMA4_ACTIVE_HIGH;
-    config.od = BMA4_PUSH_PULL;
-    config.output_en = BMA4_OUTPUT_ENABLE;
-    config.input_en = BMA4_INPUT_DISABLE;
-    // The correct trigger interrupt needs to be configured as needed
-    sensor.setINTPinConfig(config, BMA4_INTR1_MAP);
-
-    struct bma423_axes_remap remap_data;
-    remap_data.x_axis = 1;
-    remap_data.x_axis_sign = 0xFF;
-    remap_data.y_axis = 0;
-    remap_data.y_axis_sign = 0xFF;
-    remap_data.z_axis = 2;
-    remap_data.z_axis_sign = 0xFF;
-    // Need to raise the wrist function, need to set the correct axis
-    sensor.setRemapAxes(&remap_data);
-
-    // Enable BMA423 isStepCounter feature
-    sensor.enableFeature(BMA423_STEP_CNTR, true);
-    // Enable BMA423 isTilt feature
-    sensor.enableFeature(BMA423_TILT, true);
-    // Enable BMA423 isDoubleClick feature
-    sensor.enableFeature(BMA423_WAKEUP, true);
-
-    // Reset steps
-    sensor.resetStepCounter();
-
-    // Turn on feature interrupt
-    //sensor.enableStepCountInterrupt();
-    //sensor.enableTiltInterrupt();
-    // It corresponds to isDoubleClick interrupt
-    sensor.enableWakeupInterrupt();  
-}
-
-
-uint16_t WatchyStep::_readRegister(uint8_t address, uint8_t reg, uint8_t *data, uint16_t len)
-{
-    Wire.beginTransmission(address);
-    Wire.write(reg);
-    Wire.endTransmission();
-    Wire.requestFrom((uint8_t)address, (uint8_t)len);
-    uint8_t i = 0;
-    while (Wire.available()) {
-        data[i++] = Wire.read();
-    }
-    return 0;
-}
-
-uint16_t WatchyStep::_writeRegister(uint8_t address, uint8_t reg, uint8_t *data, uint16_t len)
-{
-    Wire.beginTransmission(address);
-    Wire.write(reg);
-    Wire.write(data, len);
-    return (0 !=  Wire.endTransmission());
 }
