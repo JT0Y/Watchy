@@ -19,7 +19,10 @@ void WatchyJarvis::handleButtonPress(){
     
     uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
     if(wakeupBit & UP_BTN_MASK && guiState == WATCHFACE_STATE){
-        // NOP
+        dark_mode = dark_mode == true ? false : true;
+        RTC.read(currentTime);
+        showWatchFace(false);
+        return;
     }
 }
 
@@ -59,7 +62,7 @@ void WatchyJarvis::drawTime(){
     display.setFont(&FONT_SMALL);
     display.setCursor(120, 50);
     display.println("time");
-    display.drawLine(53,40, 115,40, FOREGROUND_COLOR);
+    display.drawLine(53,42, 115,42, FOREGROUND_COLOR);
     display.drawLine(150,50, 195,50, FOREGROUND_COLOR);
 }
 
@@ -69,9 +72,7 @@ void WatchyJarvis::drawDate(){
     uint16_t w, h;
 
     drawCircle(10,20,48,FOREGROUND_COLOR,4);
-    display.fillRect(0,0,200,40,BACKGROUND_COLOR);
     drawCircle(10,20,38,FOREGROUND_COLOR,2);
-    //drawCircle(10,20,48,FOREGROUND_COLOR,2);
 
     display.setFont(&FONT_SMALL);
     String dayOfWeek = dayShortStr(currentTime.Wday);
@@ -93,12 +94,13 @@ void WatchyJarvis::drawBattery(){
     int16_t  x1, y1;
     uint16_t w, h;
 
-    drawCircle(20, 170, 30, FOREGROUND_COLOR, 3);
-    display.fillRect(0, 170, 80, 80, BACKGROUND_COLOR);
-
-    drawCircle(20, 170, 45, FOREGROUND_COLOR, 5);
-
     int8_t percentage = getBattery();
+    int8_t height = 60 - float(percentage)/100 * 60;
+    drawCircle(20, 170, 30, FOREGROUND_COLOR, 6);
+    display.fillRect(0, 140, 60, height, BACKGROUND_COLOR);
+    display.fillRect(0, 140, 20, 30, BACKGROUND_COLOR);
+    drawCircle(20, 170, 40, FOREGROUND_COLOR, 3);
+
     percentage = min((int8_t) 99, percentage);    
     display.setFont(&FONT_MEDUM);
     display.setCursor(5, 180);
@@ -154,6 +156,8 @@ void WatchyJarvis::drawSteps(){
     display.getTextBounds("steps", 80, 170, &x1, &y1, &w, &h);
     display.drawLine(80-1, 172, 80+w+1, 172, FOREGROUND_COLOR);
     display.drawLine(80+w, 172, 135, 182, FOREGROUND_COLOR);
+
+    display.drawLine(60, 195, 135, 195, FOREGROUND_COLOR);
 }
 
 

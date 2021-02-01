@@ -7,16 +7,15 @@
 
 
 // Color settings
-#define DARKMODE            false
-#define FOREGROUND_COLOR    (DARKMODE ? GxEPD_WHITE : GxEPD_BLACK)
-#define BACKGROUND_COLOR    (DARKMODE ? GxEPD_BLACK : GxEPD_WHITE)
+extern RTC_DATA_ATTR bool dark_mode;
+#define FOREGROUND_COLOR    (dark_mode ? GxEPD_WHITE : GxEPD_BLACK)
+#define BACKGROUND_COLOR    (dark_mode ? GxEPD_BLACK : GxEPD_WHITE)
 #define GRAPH_COLOR         FOREGROUND_COLOR
 #define BATTERY_OFFSET      0.25    // This offset is different for each watch [V]
 
 // Other settings 
 #define DOUBLE_TAP_TIME     3       // Time between two double taps [s]
 #define EXT_INT_MASK        MENU_BTN_MASK|BACK_BTN_MASK|UP_BTN_MASK|DOWN_BTN_MASK|ACC_INT_MASK
-
 
 
 class WatchyBase : public Watchy {

@@ -4,8 +4,7 @@
 // Store in RTC RAM, otherwise we loose information between different interrupts
 RTC_DATA_ATTR uint8_t rotation = 0;
 RTC_DATA_ATTR time_t lastDoubleTap;
-
-
+RTC_DATA_ATTR bool dark_mode = false;
 
 WatchyBase::WatchyBase(){
 
