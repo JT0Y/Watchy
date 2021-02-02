@@ -126,7 +126,7 @@ void WatchyJarvis::drawSteps(){
     
     // Whenever we have a new hour, we can restart our step counting.
     // But only if its an rtc alarm - ignore button press etc.
-    if(rtc_alarm && currentTime.Minute == 0){
+    if(rtc_alarm && currentTime.Minute == 0 && currentTime.Hour == 0){
         sensor.resetStepCounter();
     }
     
