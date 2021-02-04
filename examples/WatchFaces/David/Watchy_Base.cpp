@@ -36,7 +36,6 @@ void WatchyBase::init(){
     deepSleep();
 }
 
-
 void WatchyBase::deepSleep(){
   esp_sleep_enable_ext0_wakeup(RTC_PIN, 0); //enable deep sleep wake on RTC interrupt
   esp_sleep_enable_ext1_wakeup(EXT_INT_MASK, ESP_EXT1_WAKEUP_ANY_HIGH); //enable deep sleep wake on button press
@@ -48,12 +47,8 @@ void WatchyBase::handleButtonPress(){
     uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
 
     if (wakeupBit & ACC_INT_MASK && guiState == WATCHFACE_STATE){
-        while(!sensor.getINT()){
-            // Wait until interrupt is cleared.
-            // Otherwise if will fire again and again.
-        }
-
-        RTC.read(currentTime);
+        // Should not occur
+        /*RTC.read(currentTime);
         time_t now = makeTime(currentTime);
         bool gestureDetected = (now - lastDoubleTap) < DOUBLE_TAP_TIME;
         lastDoubleTap = now;
@@ -63,9 +58,14 @@ void WatchyBase::handleButtonPress(){
             digitalWrite(VIB_MOTOR_PIN, true);
             delay(1000);
             digitalWrite(VIB_MOTOR_PIN, false);
-            // ToDo: IOT control device
+            
+            openDoor();
         }
 
+        while(!sensor.getINT()){
+            // Wait until interrupt is cleared.
+            // Otherwise it will fire again and again.
+        }*/
         return;
     }
 
@@ -81,12 +81,74 @@ void WatchyBase::handleButtonPress(){
     }
 
     if(wakeupBit & DOWN_BTN_MASK && guiState == WATCHFACE_STATE){
-        RTC.read(currentTime);
-        vibTime();
+        //RTC.read(currentTime);
+        //vibTime();
+        //return;
+        pinMode(VIB_MOTOR_PIN, OUTPUT);
+        digitalWrite(VIB_MOTOR_PIN, true);
+        delay(150);
+        digitalWrite(VIB_MOTOR_PIN, false);
+        
+        if(openDoor()){
+            digitalWrite(VIB_MOTOR_PIN, true);
+            delay(150);
+            digitalWrite(VIB_MOTOR_PIN, false);
+        }
         return;
     }
     
     Watchy::handleButtonPress();
+}
+
+
+
+bool WatchyBase::connectWiFi(){
+    if(WL_CONNECT_FAILED == WiFi.begin(IOT_SSID, IOT_PASS)){//WiFi not setup, you can also use hard coded credentials with WiFi.begin(SSID,PASS);
+        WIFI_CONFIGURED = false;
+    }else{
+        if(WL_CONNECTED == WiFi.waitForConnectResult()){//attempt to connect for 10s
+            WIFI_CONFIGURED = true;
+        }else{//connection failed, time out
+            WIFI_CONFIGURED = false;
+            //turn off radios
+            WiFi.mode(WIFI_OFF);
+        }
+    }
+    return WIFI_CONFIGURED;
+}
+
+void WatchyBase::disconnectWiFi(){
+    WIFI_CONFIGURED=false;
+    WiFi.disconnect();
+    WiFi.mode(WIFI_OFF);
+    btStop();
+}
+
+
+// https://github.com/espressif/arduino-esp32/issues/3659
+bool WatchyBase::openDoor(){
+    if(!connectWiFi()){
+        return false;
+    }
+
+    WiFiClient client;
+    HTTPClient http;
+    String url = String(IOT_URL);
+    
+    bool http_init_result = http.begin(client, url.c_str());
+    http.setConnectTimeout(500);
+    if(!http_init_result){
+        disconnectWiFi();
+        return false;
+    }
+    
+    http.GET();
+    if (http.connected()) {
+        http.end();
+    }
+
+    disconnectWiFi();
+    return true;
 }
 
 
@@ -247,7 +309,7 @@ void WatchyBase::_bmaConfig(){
     //sensor.enableStepCountInterrupt();
     //sensor.enableTiltInterrupt();
     // It corresponds to isDoubleClick interrupt
-    sensor.enableWakeupInterrupt();  
+    //sensor.enableWakeupInterrupt();  
 }
 
 

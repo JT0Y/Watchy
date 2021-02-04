@@ -1,5 +1,11 @@
 {
     "files.associations": {
-        "*.cuh": "cpp"
+        "*.cuh": "cpp",
+        "*.tcc": "cpp",
+        "random": "cpp",
+        "istream": "cpp",
+        "limits": "cpp",
+        "streambuf": "cpp",
+        "optional": "cpp"
     }
 }

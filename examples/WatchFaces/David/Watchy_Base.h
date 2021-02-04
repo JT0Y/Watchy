@@ -4,6 +4,19 @@
 #include <Watchy.h>
 #include "fonts.h"
 #include "icons.h"
+#include <WiFiManager.h>
+#include <HTTPClient.h>
+
+
+// IOT WIFI SETTINGS - CONTROL VIA HTTP GET ON URL
+#define IOT_SSID      "ENTER_HERE"
+#define IOT_PASS      "ENTER_HERE"
+#define IOT_URL       "ENTER_HERE"
+
+
+#if __has_include("config.h") && __has_include(<stdint.h>)
+# include "config.h"
+#endif
 
 
 // Color settings
@@ -27,6 +40,9 @@ class WatchyBase : public Watchy {
         virtual void deepSleep();
         uint8_t getBattery();
         void vibTime();
+        bool connectWiFi();
+        void disconnectWiFi();
+        bool openDoor();
 
         esp_sleep_wakeup_cause_t wakeup_reason;
     private:
