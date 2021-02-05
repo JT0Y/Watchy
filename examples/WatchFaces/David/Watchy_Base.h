@@ -5,13 +5,16 @@
 #include "fonts.h"
 #include "icons.h"
 #include <WiFiManager.h>
-#include <HTTPClient.h>
+#include <PubSubClient.h>
 
 
 // IOT WIFI SETTINGS - CONTROL VIA HTTP GET ON URL
-#define IOT_SSID      "ENTER_HERE"
-#define IOT_PASS      "ENTER_HERE"
-#define IOT_URL       "ENTER_HERE"
+#define WIFI_SSID      "ENTER_HERE"
+#define WIFI_PASS      "ENTER_HERE"
+
+#define MQTT_BROKER    "ENTER_HERE"
+#define MQTT_TOPIC     "ENTER_HERE"
+#define MQTT_PAYLOAD   "ENTER_HERE"
 
 
 #if __has_include("config.h") && __has_include(<stdint.h>)

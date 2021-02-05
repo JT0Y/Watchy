@@ -103,17 +103,20 @@ void WatchyBase::handleButtonPress(){
 
 
 bool WatchyBase::connectWiFi(){
-    if(WL_CONNECT_FAILED == WiFi.begin(IOT_SSID, IOT_PASS)){//WiFi not setup, you can also use hard coded credentials with WiFi.begin(SSID,PASS);
-        WIFI_CONFIGURED = false;
-    }else{
-        if(WL_CONNECTED == WiFi.waitForConnectResult()){//attempt to connect for 10s
-            WIFI_CONFIGURED = true;
-        }else{//connection failed, time out
-            WIFI_CONFIGURED = false;
-            //turn off radios
-            WiFi.mode(WIFI_OFF);
+
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
+    
+    int8_t retries = 20;
+    while (WiFi.status() != WL_CONNECTED) {
+        if(retries < 0){
+            break;
         }
+
+        delay(100);
+        retries--;
     }
+
+    WIFI_CONFIGURED = WiFi.status() == WL_CONNECTED;
     return WIFI_CONFIGURED;
 }
 
@@ -131,21 +134,23 @@ bool WatchyBase::openDoor(){
         return false;
     }
 
-    WiFiClient client;
-    HTTPClient http;
-    String url = String(IOT_URL);
-    
-    bool http_init_result = http.begin(client, url.c_str());
-    http.setConnectTimeout(500);
-    if(!http_init_result){
-        disconnectWiFi();
-        return false;
+    WiFiClient espClient;
+    PubSubClient client(espClient);
+    client.setServer(MQTT_BROKER, 1883);
+    int8_t retries = 20;
+    while(!client.connected()){
+        if(retries < 0){
+            break;
+        }
+
+        delay(100);
+        retries--;
+    }
+
+    if(client.connect("WatchyDavid")){
+        client.publish(MQTT_TOPIC, MQTT_PAYLOAD);
     }
     
-    http.GET();
-    if (http.connected()) {
-        http.end();
-    }
 
     disconnectWiFi();
     return true;
