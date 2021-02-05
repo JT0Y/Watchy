@@ -45,7 +45,7 @@ class WatchyBase : public Watchy {
         void vibTime();
         bool connectWiFi();
         void disconnectWiFi();
-        bool openDoor();
+        int openDoor();
 
         esp_sleep_wakeup_cause_t wakeup_reason;
     private:

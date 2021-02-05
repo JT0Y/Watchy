@@ -6,6 +6,7 @@ RTC_DATA_ATTR uint8_t rotation = 0;
 RTC_DATA_ATTR time_t lastDoubleTap;
 RTC_DATA_ATTR bool dark_mode = false;
 
+
 WatchyBase::WatchyBase(){
 
 }
@@ -86,15 +87,16 @@ void WatchyBase::handleButtonPress(){
         //return;
         pinMode(VIB_MOTOR_PIN, OUTPUT);
         digitalWrite(VIB_MOTOR_PIN, true);
-        delay(150);
+        delay(200);
         digitalWrite(VIB_MOTOR_PIN, false);
         
-        if(openDoor()){
+        int result_code = openDoor();
+        for(int i=0; i < result_code; i++){
+            delay(200);
             digitalWrite(VIB_MOTOR_PIN, true);
-            delay(150);
+            delay(200);
             digitalWrite(VIB_MOTOR_PIN, false);
         }
-        return;
     }
     
     Watchy::handleButtonPress();
@@ -104,19 +106,21 @@ void WatchyBase::handleButtonPress(){
 
 bool WatchyBase::connectWiFi(){
 
+    WIFI_CONFIGURED = false;
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     
     int8_t retries = 20;
-    while (WiFi.status() != WL_CONNECTED) {
+    while (!WIFI_CONFIGURED) {
         if(retries < 0){
             break;
         }
-
-        delay(100);
         retries--;
+
+        delay(250);
+        WIFI_CONFIGURED = (WiFi.status() == WL_CONNECTED);
     }
 
-    WIFI_CONFIGURED = WiFi.status() == WL_CONNECTED;
+    
     return WIFI_CONFIGURED;
 }
 
@@ -129,31 +133,36 @@ void WatchyBase::disconnectWiFi(){
 
 
 // https://github.com/espressif/arduino-esp32/issues/3659
-bool WatchyBase::openDoor(){
+int WatchyBase::openDoor(){
     if(!connectWiFi()){
-        return false;
+        return 2;
     }
 
-    WiFiClient espClient;
-    PubSubClient client(espClient);
-    client.setServer(MQTT_BROKER, 1883);
+    WiFiClient wifi_client;
+    PubSubClient mqtt_client(wifi_client);
+    mqtt_client.setServer(MQTT_BROKER, 1883);
+
     int8_t retries = 20;
-    while(!client.connected()){
+    while(!mqtt_client.connected()){
         if(retries < 0){
             break;
         }
-
-        delay(100);
         retries--;
+
+        mqtt_client.connect("WatchyDavid");
+        delay(250);
     }
 
-    if(client.connect("WatchyDavid")){
-        client.publish(MQTT_TOPIC, MQTT_PAYLOAD);
+    if(mqtt_client.connected()){
+        mqtt_client.publish(MQTT_TOPIC, MQTT_PAYLOAD);
+        mqtt_client.disconnect();
+    } else {
+        return 3;
     }
     
 
     disconnectWiFi();
-    return true;
+    return 1;
 }
 
 
@@ -177,7 +186,6 @@ void WatchyBase::vibTime(){
         delay(200);
     }
     
-    // 10-Minutes
     delay(2000);
 
     uint8_t m_10_buzz = currentTime.Minute / 10;
