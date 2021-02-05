@@ -36,7 +36,10 @@ void WatchyStep::handleButtonPress(){
 
 void WatchyStep::drawWatchFace(){
     WatchyBase::drawWatchFace();
-
+    if(show_mqqt_data){
+        return;
+    }
+    
     for(uint8_t i=0; i<4; i++){
         display.drawRoundRect(0+i, 0+i, 196, 196, 4, FOREGROUND_COLOR);
     }

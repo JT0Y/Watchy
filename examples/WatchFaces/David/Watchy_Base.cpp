@@ -1,11 +1,21 @@
 #include "Watchy_Base.h"
 
 
+
+#define FONT_SMALL       FreeSans9pt7b
+#define FONT_MEDIUM      FreeSans12pt7b
+
+
 // Store in RTC RAM, otherwise we loose information between different interrupts
 RTC_DATA_ATTR uint8_t rotation = 0;
-RTC_DATA_ATTR time_t lastDoubleTap;
 RTC_DATA_ATTR bool dark_mode = false;
 
+// Variables needed to show data from our MQTT broker
+RTC_DATA_ATTR bool show_mqqt_data = false;
+RTC_DATA_ATTR volatile int received_mqtt_data = false;
+RTC_DATA_ATTR float indoor_temp = 0.0;
+RTC_DATA_ATTR float outdoor_temp = 0.0;
+RTC_DATA_ATTR int wind_strength = 0;
 
 WatchyBase::WatchyBase(){
 
@@ -48,25 +58,21 @@ void WatchyBase::handleButtonPress(){
     uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
 
     if (wakeupBit & ACC_INT_MASK && guiState == WATCHFACE_STATE){
-        // Should not occur
-        /*RTC.read(currentTime);
-        time_t now = makeTime(currentTime);
-        bool gestureDetected = (now - lastDoubleTap) < DOUBLE_TAP_TIME;
-        lastDoubleTap = now;
-        
-        pinMode(VIB_MOTOR_PIN, OUTPUT);
-        if(gestureDetected){
-            digitalWrite(VIB_MOTOR_PIN, true);
-            delay(1000);
-            digitalWrite(VIB_MOTOR_PIN, false);
-            
-            openDoor();
+        show_mqqt_data = show_mqqt_data ? false : true;
+        vibrate(2, 50);
+
+        if(!show_mqqt_data){
+            RTC.read(currentTime);
+            showWatchFace(false);
+        } else {
+            showMqqtData();
         }
 
         while(!sensor.getINT()){
             // Wait until interrupt is cleared.
             // Otherwise it will fire again and again.
-        }*/
+        }
+
         return;
     }
 
@@ -85,23 +91,109 @@ void WatchyBase::handleButtonPress(){
         //RTC.read(currentTime);
         //vibTime();
         //return;
-        pinMode(VIB_MOTOR_PIN, OUTPUT);
-        digitalWrite(VIB_MOTOR_PIN, true);
-        delay(200);
-        digitalWrite(VIB_MOTOR_PIN, false);
         
-        int result_code = openDoor();
-        for(int i=0; i < result_code; i++){
-            delay(200);
-            digitalWrite(VIB_MOTOR_PIN, true);
-            delay(200);
-            digitalWrite(VIB_MOTOR_PIN, false);
-        }
+        vibrate();
+        uint8_t result_code = openDoor();
+        vibrate(result_code+1);
     }
     
     Watchy::handleButtonPress();
 }
 
+
+void WatchyBase::vibrate(uint8_t times, uint32_t delay_time){
+    pinMode(VIB_MOTOR_PIN, OUTPUT);
+    for(uint8_t i=0; i<times; i++){
+        delay(delay_time);
+        digitalWrite(VIB_MOTOR_PIN, true);
+        delay(delay_time);
+        digitalWrite(VIB_MOTOR_PIN, false);
+    }
+}
+
+
+void callback(char* topic, byte* payload, unsigned int length){
+    char message_buf[length+1];
+    for (int i = 0; i<length; i++) {
+        message_buf[i] = payload[i];
+    }
+    message_buf[length] = '\0';
+    const char *p_payload = message_buf;
+
+    if(strcmp("weather/indoor/temperature", topic) == 0){
+        received_mqtt_data += 1;
+        indoor_temp = atof(p_payload);
+    }
+
+    if(strcmp("weather/indoor/aussen/temperature", topic) == 0){
+        received_mqtt_data += 1;
+        outdoor_temp = atof(p_payload);
+    }
+
+    if(strcmp("weather/indoor/wind/windstrength", topic) == 0){
+        received_mqtt_data += 1;
+        wind_strength = atoi(p_payload);
+    }
+}
+
+
+uint8_t WatchyBase::showMqqtData(){
+    if(!connectWiFi()){
+        // ToDo: display something
+        return 1;
+    }
+
+    WiFiClient wifi_client;
+    PubSubClient mqtt_client(wifi_client);
+    received_mqtt_data=0;
+    mqtt_client.setServer(MQTT_BROKER, 1883);
+    mqtt_client.setCallback(callback);
+    
+    int8_t retries = 20;
+    while(!mqtt_client.connected()){
+        if(retries < 0){
+            break;
+        }
+        retries--;
+
+        mqtt_client.connect("WatchyDavid");
+        delay(250);
+    }
+
+    if(!mqtt_client.connected()){
+        disconnectWiFi();
+        return 2;
+    }
+
+    mqtt_client.subscribe("weather/indoor/temperature");
+    mqtt_client.subscribe("weather/indoor/aussen/temperature");
+    mqtt_client.subscribe("weather/indoor/wind/windstrength");
+
+    uint8_t result = 0;
+    retries=20;
+    while(received_mqtt_data < 3){
+        mqtt_client.loop();
+        if(retries < 0){
+            break;
+        }
+        retries--;
+        delay(250);
+    }
+
+    mqtt_client.disconnect();
+    disconnectWiFi();
+
+    bool received_data = retries > 0;
+    if(!received_data){
+        mqtt_client.disconnect();
+        disconnectWiFi();
+        return 3;
+    }
+
+    // Now show our data
+    showWatchFace(false);
+    return result;
+}
 
 
 bool WatchyBase::connectWiFi(){
@@ -133,9 +225,9 @@ void WatchyBase::disconnectWiFi(){
 
 
 // https://github.com/espressif/arduino-esp32/issues/3659
-int WatchyBase::openDoor(){
+uint8_t WatchyBase::openDoor(){
     if(!connectWiFi()){
-        return 2;
+        return 1;
     }
 
     WiFiClient wifi_client;
@@ -153,51 +245,41 @@ int WatchyBase::openDoor(){
         delay(250);
     }
 
+    int result = 0;
     if(mqtt_client.connected()){
         mqtt_client.publish(MQTT_TOPIC, MQTT_PAYLOAD);
+        mqtt_client.loop();
         mqtt_client.disconnect();
     } else {
-        return 3;
+        result = 2;
     }
     
-
     disconnectWiFi();
-    return 1;
+    return result;
 }
 
-
-void WatchyBase::vibTime(){
-    pinMode(VIB_MOTOR_PIN, OUTPUT);
-
-    // Hours
-    uint8_t h_5_buzz = currentTime.Hour/5;
-    for(int8_t i=0; i < h_5_buzz; i++){
-        digitalWrite(VIB_MOTOR_PIN, true);
-        delay(400);
-        digitalWrite(VIB_MOTOR_PIN, false);
-        delay(400);
-    }
-
-    uint8_t h_1_buzz = currentTime.Hour - h_5_buzz * 5;
-    for(int8_t i=0; i < h_1_buzz; i++){
-        digitalWrite(VIB_MOTOR_PIN, true);
-        delay(200);
-        digitalWrite(VIB_MOTOR_PIN, false);
-        delay(200);
-    }
-    
-    delay(2000);
-
-    uint8_t m_10_buzz = currentTime.Minute / 10;
-    for(int8_t i=0; i < m_10_buzz; i++){
-        digitalWrite(VIB_MOTOR_PIN, true);
-        delay(200);
-        digitalWrite(VIB_MOTOR_PIN, false);
-        delay(200);
-    }
-}
 
 void WatchyBase::drawWatchFace(){
+    if(show_mqqt_data){
+        display.fillScreen(BACKGROUND_COLOR);
+        display.setTextColor(FOREGROUND_COLOR);
+        display.setFont(&FONT_MEDIUM);
+        display.setCursor(40, 20);
+        display.print("Information");
+
+        display.setCursor(0, 60);
+        display.setFont(&FONT_SMALL);
+        display.print(" In. temp.: ");
+        display.println(indoor_temp);
+        
+        display.print(" Out. temp.: ");
+        display.println(outdoor_temp);
+
+        display.print(" Wind strength: ");
+        display.println(wind_strength);
+        return;
+    }
+
     display.setRotation(rotation);
     display.fillScreen(BACKGROUND_COLOR);
     display.setTextColor(FOREGROUND_COLOR);
@@ -322,7 +404,7 @@ void WatchyBase::_bmaConfig(){
     //sensor.enableStepCountInterrupt();
     //sensor.enableTiltInterrupt();
     // It corresponds to isDoubleClick interrupt
-    //sensor.enableWakeupInterrupt();  
+    sensor.enableWakeupInterrupt();  
 }
 
 

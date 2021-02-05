@@ -8,6 +8,9 @@
 #include <PubSubClient.h>
 
 
+extern RTC_DATA_ATTR bool show_mqqt_data;
+
+
 // IOT WIFI SETTINGS - CONTROL VIA HTTP GET ON URL
 #define WIFI_SSID      "ENTER_HERE"
 #define WIFI_PASS      "ENTER_HERE"
@@ -33,7 +36,6 @@ extern RTC_DATA_ATTR bool dark_mode;
 #define DOUBLE_TAP_TIME     3       // Time between two double taps [s]
 #define EXT_INT_MASK        MENU_BTN_MASK|BACK_BTN_MASK|UP_BTN_MASK|DOWN_BTN_MASK|ACC_INT_MASK
 
-
 class WatchyBase : public Watchy {
     public:
         WatchyBase();
@@ -41,11 +43,12 @@ class WatchyBase : public Watchy {
         virtual void init();
         virtual void handleButtonPress();
         virtual void deepSleep();
+        void vibrate(uint8_t times=1, uint32_t delay_time=200);
         uint8_t getBattery();
-        void vibTime();
         bool connectWiFi();
         void disconnectWiFi();
-        int openDoor();
+        uint8_t openDoor();
+        uint8_t showMqqtData();
 
         esp_sleep_wakeup_cause_t wakeup_reason;
     private:

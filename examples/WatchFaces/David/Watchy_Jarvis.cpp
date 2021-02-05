@@ -29,6 +29,9 @@ void WatchyJarvis::handleButtonPress(){
 
 void WatchyJarvis::drawWatchFace(){
     WatchyBase::drawWatchFace();
+    if(show_mqqt_data){
+        return;
+    }
 
     display.drawBitmap(60, 60, iron_man, 80, 80, FOREGROUND_COLOR);
     drawDate();
