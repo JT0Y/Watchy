@@ -18,10 +18,7 @@ void WatchyBTTF::handleButtonPress(){
     
     uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
     if(IS_DOUBLE_TAP){
-        dark_mode = dark_mode == true ? false : true;
-        RTC.read(currentTime);
-        showWatchFace(false);
-        return;
+        // NOP
     }
 }
 
