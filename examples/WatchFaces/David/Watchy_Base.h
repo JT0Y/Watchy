@@ -41,7 +41,7 @@ class WatchyBase : public Watchy {
         virtual void init();
         virtual void handleButtonPress();
         virtual void deepSleep();
-        void vibrate(uint8_t times=1, uint32_t delay_time=200);
+        void vibrate(uint8_t times=1, uint32_t delay_time=50);
         uint8_t getBattery();
         bool connectWiFi();
         void disconnectWiFi();

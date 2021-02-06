@@ -67,7 +67,7 @@ void WatchyBase::handleButtonPress(){
 
     if (wakeupBit & ACC_INT_MASK && guiState == WATCHFACE_STATE){
         show_mqqt_data = show_mqqt_data ? false : true;
-        vibrate(2, 50);
+        vibrate();
 
         if(show_mqqt_data){
             loadMqqtData();
@@ -102,7 +102,11 @@ void WatchyBase::handleButtonPress(){
         
         vibrate();
         uint8_t result_code = openDoor();
-        vibrate(result_code+1);
+        if(result_code <= 0){
+            vibrate();
+        } else {
+            vibrate(1, 1000);
+        }
     }
     
     Watchy::handleButtonPress();
@@ -110,6 +114,9 @@ void WatchyBase::handleButtonPress(){
 
 
 void WatchyBase::vibrate(uint8_t times, uint32_t delay_time){
+    // Ensure that no false positive double tap is produced
+    sensor.enableFeature(BMA423_WAKEUP, false); 
+
     pinMode(VIB_MOTOR_PIN, OUTPUT);
     for(uint8_t i=0; i<times; i++){
         delay(delay_time);
@@ -117,6 +124,8 @@ void WatchyBase::vibrate(uint8_t times, uint32_t delay_time){
         delay(delay_time);
         digitalWrite(VIB_MOTOR_PIN, false);
     }
+
+    sensor.enableFeature(BMA423_WAKEUP, true);
 }
 
 
@@ -219,7 +228,7 @@ uint8_t WatchyBase::loadMqqtData(){
         mqtt_client.loop();
         
         if(retries%5==0){
-            vibrate(1, 50);
+            vibrate();
         }
         
         if(retries < 0){
