@@ -38,20 +38,26 @@ void WatchyBTTF::drawWatchFace(){
 }
 
 
+void WatchyBTTF::printCentered(uint16_t x, uint16_t y, String text){
+    int16_t  x1, y1;
+    uint16_t w, h;
+
+    display.getTextBounds(text, 40, 100, &x1, &y1, &w, &h);
+    display.setCursor(x-w/2, y+h/2);
+    display.println(text);
+}
+
+
 void WatchyBTTF::drawTime(){    
     display.setFont(&FONT_7_SEG_LARGE);
     display.setTextColor(BACKGROUND_COLOR);
-    display.setCursor(95, 60);
-    if(currentTime.Hour < 10){
-        display.print("0");
-    }
-    display.println(currentTime.Hour);
+    String hourStr = String(currentTime.Hour);
+    hourStr = currentTime.Hour < 10 ? "0" + hourStr : hourStr;
+    printCentered(105, 45, hourStr);
 
-    display.setCursor(145, 60);
-    if(currentTime.Minute < 10){
-        display.print("0");
-    }
-    display.println(currentTime.Minute);
+    String minStr = String(currentTime.Minute);
+    minStr = currentTime.Minute < 10 ? "0" + minStr : minStr;
+    printCentered(165, 45, minStr);
 }
 
 
@@ -60,18 +66,14 @@ void WatchyBTTF::drawDate(){
     display.setTextColor(BACKGROUND_COLOR);
 
     String month = monthShortStr(currentTime.Month);
-    display.setCursor(15, 116);
-    display.println(month);
+    printCentered(37, 105, month);
 
-    display.setCursor(78, 116);
-    if(currentTime.Day < 10){
-        display.print("0");    
-    }
-    display.println(currentTime.Day);    
+    String dayStr = String(currentTime.Day);
+    dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
+    printCentered(94, 104, dayStr);
 
-    uint16_t year = currentTime.Year + YEAR_OFFSET;
-    display.setCursor(127, 116);
-    display.println(year); 
+    String yearStr = String(currentTime.Year + YEAR_OFFSET);
+    printCentered(155, 104, yearStr);
 }
 
 
@@ -79,13 +81,10 @@ void WatchyBTTF::drawBattery(){
     display.setFont(&FONT_7_SEG_MEDIUM);
     display.setTextColor(BACKGROUND_COLOR);
 
-    int8_t percentage = getBattery();
-    if(percentage < 10) {
-        display.print("0");
-    }
-
-    display.setCursor(140, 181);
-    display.println(percentage); 
+    int8_t bat = getBattery();
+    String batStr = String(bat);
+    batStr = bat < 10 ? "0" + batStr : batStr;
+    printCentered(161, 170, batStr);
 }
 
 
@@ -102,6 +101,10 @@ void WatchyBTTF::drawSteps(){
     }
     
     uint32_t steps = sensor.getCounter();
-    display.setCursor(15, 181);
-    display.println(steps); 
+    String stepStr = String(steps);
+    for(int i=1; i<5; i++){
+        stepStr = steps < pow(10, i) ? "0" + stepStr : stepStr;
+    }
+
+    printCentered(62, 170, stepStr);
 }

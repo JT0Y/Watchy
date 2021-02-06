@@ -6,6 +6,7 @@
         "istream": "cpp",
         "limits": "cpp",
         "streambuf": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "cmath": "cpp"
     }
 }
