@@ -23,6 +23,12 @@
 
 extern RTC_DATA_ATTR bool show_mqqt_data;
 
+// Btn definitions
+#define IS_DOUBLE_TAP       (wakeupBit & ACC_INT_MASK && guiState == WATCHFACE_STATE)
+#define IS_BTN_RIGHT_UP     (wakeupBit & UP_BTN_MASK && guiState == WATCHFACE_STATE)
+#define IS_BTN_LEFT_UP      (wakeupBit & BACK_BTN_MASK && guiState == WATCHFACE_STATE)
+#define IS_BTN_RIGHT_DOWN   (wakeupBit & DOWN_BTN_MASK && guiState == WATCHFACE_STATE)
+
 // Color settings
 extern RTC_DATA_ATTR bool dark_mode;
 #define FOREGROUND_COLOR    (dark_mode ? GxEPD_WHITE : GxEPD_BLACK)
@@ -31,8 +37,8 @@ extern RTC_DATA_ATTR bool dark_mode;
 #define BATTERY_OFFSET      0.25    // This offset is different for each watch [V]
 
 // Other settings 
-#define DOUBLE_TAP_TIME     3       // Time between two double taps [s]
 #define EXT_INT_MASK        MENU_BTN_MASK|BACK_BTN_MASK|UP_BTN_MASK|DOWN_BTN_MASK|ACC_INT_MASK
+
 
 class WatchyBase : public Watchy {
     public:

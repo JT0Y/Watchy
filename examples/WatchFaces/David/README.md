@@ -5,6 +5,7 @@
 This contains some watch-faces for the Watchy from SQFMI:
  - Step counter
  - Jarvis
+ - Back to the future
 
 
 ## Buttons and other functionality

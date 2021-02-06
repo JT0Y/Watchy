@@ -1,8 +1,11 @@
-#include "Watchy_Step.h"
-#include "Watchy_Jarvis.h"
-
+//#include "Watchy_Step.h"
 //WatchyStep watchy;
-WatchyJarvis watchy;
+
+//#include "Watchy_Jarvis.h"
+//WatchyJarvis watchy;
+
+#include "Watchy_BTTF.h"
+WatchyBTTF watchy;
 
 void setup(){
   watchy.init();

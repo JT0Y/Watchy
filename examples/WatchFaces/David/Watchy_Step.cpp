@@ -25,7 +25,7 @@ void WatchyStep::handleButtonPress(){
     WatchyBase::handleButtonPress();
     
     uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
-    if(wakeupBit & UP_BTN_MASK && guiState == WATCHFACE_STATE){
+    if(IS_DOUBLE_TAP){
         print_date = print_date == true ? false : true;
         RTC.read(currentTime);
         showWatchFace(true);

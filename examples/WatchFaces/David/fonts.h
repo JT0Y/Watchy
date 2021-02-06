@@ -12,5 +12,7 @@
 #include "Fonts/Bitwise_m19x12pt7b.h"
 #include "Fonts/Bitwise_m19x10pt7b.h"
 #include "Fonts/Bitwise_m19x18pt7b.h"
+#include "Fonts/Seven_Seg24pt7b.h"
+#include "Fonts/Seven_Seg18pt7b.h"
 
 #endif

@@ -2,6 +2,10 @@
 
 
 
+/*
+ * DEFINITIONS
+ */
+
 #define FONT_SMALL       FreeSans9pt7b
 
 
@@ -25,6 +29,10 @@ RTC_DATA_ATTR int outdoor_rain = 0.0;
 RTC_DATA_ATTR int outdoor_wind = 0;
 RTC_DATA_ATTR int outdoor_gusts = 0;
 
+
+/*
+ * FUNCTIONS
+ */
 WatchyBase::WatchyBase(){
 
 }
@@ -65,37 +73,40 @@ void WatchyBase::deepSleep(){
 void WatchyBase::handleButtonPress(){
     uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
 
-    if (wakeupBit & ACC_INT_MASK && guiState == WATCHFACE_STATE){
-        show_mqqt_data = show_mqqt_data ? false : true;
-        vibrate();
-
-        if(show_mqqt_data){
-            loadMqqtData();
-        }
-
-        RTC.read(currentTime);
-        showWatchFace(false);
-
+    if (IS_DOUBLE_TAP){
         while(!sensor.getINT()){
             // Wait until interrupt is cleared.
             // Otherwise it will fire again and again.
         }
 
-        return;
+        // To be defined in the watch face what we want exactly 
+        // to do. Therefore, no return;
     }
 
-    if (wakeupBit & BACK_BTN_MASK && guiState == WATCHFACE_STATE){
+    if (IS_BTN_LEFT_UP){
         rotation = rotation == 2 ? 0 : 2;
         RTC.read(currentTime);
         showWatchFace(false);
         return;
     }
 
-    if(wakeupBit & UP_BTN_MASK && guiState == WATCHFACE_STATE){
-        // To be defined by the watch face (child)
+    if(IS_BTN_RIGHT_UP){
+        show_mqqt_data = show_mqqt_data ? false : true;
+
+        if(show_mqqt_data){
+            int result_code = loadMqqtData();
+            if(result_code != 0){
+                vibrate(1, 1000);
+            }
+        }
+
+        RTC.read(currentTime);
+        showWatchFace(false);
+
+        return;
     }
 
-    if(wakeupBit & DOWN_BTN_MASK && guiState == WATCHFACE_STATE){
+    if(IS_BTN_RIGHT_DOWN){
         //RTC.read(currentTime);
         //vibTime();
         //return;
@@ -199,6 +210,7 @@ void WatchyBase::disconnectWiFi(){
 
 uint8_t WatchyBase::loadMqqtData(){
     MQTT_CLEAR;
+    vibrate();
 
     if(!connectWiFi()){
         return 1;
@@ -211,7 +223,6 @@ uint8_t WatchyBase::loadMqqtData(){
     
     mqtt_client.connect("WatchyDavid");
     if(!mqtt_client.connected()){
-        vibrate(1, 1000);
         disconnectWiFi();
         return 2;
     }
@@ -227,7 +238,7 @@ uint8_t WatchyBase::loadMqqtData(){
     while(!MQTT_RECEIVED_ALL_DATA){
         mqtt_client.loop();
         
-        if(retries%5==0){
+        if(retries % 5 == 0){
             vibrate();
         }
         
