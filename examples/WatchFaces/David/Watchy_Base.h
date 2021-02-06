@@ -6,7 +6,7 @@
 #include "icons.h"
 #include <WiFiManager.h>
 #include <PubSubClient.h>
-
+#include "Images/smart_home.h"
 
 extern RTC_DATA_ATTR bool show_mqqt_data;
 
@@ -48,7 +48,9 @@ class WatchyBase : public Watchy {
         bool connectWiFi();
         void disconnectWiFi();
         uint8_t openDoor();
-        uint8_t showMqqtData();
+        uint8_t loadMqqtData();
+        void drawHelperGrid();
+        void drawMqqtData();
 
         esp_sleep_wakeup_cause_t wakeup_reason;
     private:

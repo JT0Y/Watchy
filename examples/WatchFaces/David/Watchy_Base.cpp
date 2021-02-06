@@ -3,7 +3,6 @@
 
 
 #define FONT_SMALL       FreeSans9pt7b
-#define FONT_MEDIUM      FreeSans12pt7b
 
 
 // Store in RTC RAM, otherwise we loose information between different interrupts
@@ -13,9 +12,18 @@ RTC_DATA_ATTR bool dark_mode = false;
 // Variables needed to show data from our MQTT broker
 RTC_DATA_ATTR bool show_mqqt_data = false;
 RTC_DATA_ATTR volatile int received_mqtt_data = false;
+
+#define MQTT_NUM_DATA               6
+#define MQTT_RECEIVED_ALL_DATA      (received_mqtt_data >= MQTT_NUM_DATA)
+#define MQTT_CLEAR                  received_mqtt_data=0
+#define MQTT_RECEIVED_DATA          received_mqtt_data++
+
 RTC_DATA_ATTR float indoor_temp = 0.0;
+RTC_DATA_ATTR int indoor_co2 = 0.0;
 RTC_DATA_ATTR float outdoor_temp = 0.0;
-RTC_DATA_ATTR int wind_strength = 0;
+RTC_DATA_ATTR int outdoor_rain = 0.0;
+RTC_DATA_ATTR int outdoor_wind = 0;
+RTC_DATA_ATTR int outdoor_gusts = 0;
 
 WatchyBase::WatchyBase(){
 
@@ -61,12 +69,12 @@ void WatchyBase::handleButtonPress(){
         show_mqqt_data = show_mqqt_data ? false : true;
         vibrate(2, 50);
 
-        if(!show_mqqt_data){
-            RTC.read(currentTime);
-            showWatchFace(false);
-        } else {
-            showMqqtData();
+        if(show_mqqt_data){
+            loadMqqtData();
         }
+
+        RTC.read(currentTime);
+        showWatchFace(false);
 
         while(!sensor.getINT()){
             // Wait until interrupt is cleared.
@@ -121,78 +129,34 @@ void callback(char* topic, byte* payload, unsigned int length){
     const char *p_payload = message_buf;
 
     if(strcmp("weather/indoor/temperature", topic) == 0){
-        received_mqtt_data += 1;
+        MQTT_RECEIVED_DATA;
         indoor_temp = atof(p_payload);
     }
 
+    if(strcmp("weather/indoor/zimmer von david/co2", topic) == 0){
+        MQTT_RECEIVED_DATA;
+        indoor_co2 = atof(p_payload);
+    }
+
     if(strcmp("weather/indoor/aussen/temperature", topic) == 0){
-        received_mqtt_data += 1;
+        MQTT_RECEIVED_DATA;
         outdoor_temp = atof(p_payload);
     }
 
     if(strcmp("weather/indoor/wind/windstrength", topic) == 0){
-        received_mqtt_data += 1;
-        wind_strength = atoi(p_payload);
-    }
-}
-
-
-uint8_t WatchyBase::showMqqtData(){
-    if(!connectWiFi()){
-        // ToDo: display something
-        return 1;
+        MQTT_RECEIVED_DATA;
+        outdoor_wind = atoi(p_payload);
     }
 
-    WiFiClient wifi_client;
-    PubSubClient mqtt_client(wifi_client);
-    received_mqtt_data=0;
-    mqtt_client.setServer(MQTT_BROKER, 1883);
-    mqtt_client.setCallback(callback);
-    
-    int8_t retries = 20;
-    while(!mqtt_client.connected()){
-        if(retries < 0){
-            break;
-        }
-        retries--;
-
-        mqtt_client.connect("WatchyDavid");
-        delay(250);
+    if(strcmp("weather/indoor/wind/guststrength", topic) == 0){
+        MQTT_RECEIVED_DATA;
+        outdoor_gusts = atoi(p_payload);
     }
 
-    if(!mqtt_client.connected()){
-        disconnectWiFi();
-        return 2;
+    if(strcmp("weather/indoor/regenmesser/rain", topic) == 0){
+        MQTT_RECEIVED_DATA;
+        outdoor_rain = atoi(p_payload);
     }
-
-    mqtt_client.subscribe("weather/indoor/temperature");
-    mqtt_client.subscribe("weather/indoor/aussen/temperature");
-    mqtt_client.subscribe("weather/indoor/wind/windstrength");
-
-    uint8_t result = 0;
-    retries=20;
-    while(received_mqtt_data < 3){
-        mqtt_client.loop();
-        if(retries < 0){
-            break;
-        }
-        retries--;
-        delay(250);
-    }
-
-    mqtt_client.disconnect();
-    disconnectWiFi();
-
-    bool received_data = retries > 0;
-    if(!received_data){
-        mqtt_client.disconnect();
-        disconnectWiFi();
-        return 3;
-    }
-
-    // Now show our data
-    showWatchFace(false);
-    return result;
 }
 
 
@@ -221,6 +185,63 @@ void WatchyBase::disconnectWiFi(){
     WiFi.disconnect();
     WiFi.mode(WIFI_OFF);
     btStop();
+}
+
+
+uint8_t WatchyBase::loadMqqtData(){
+    MQTT_CLEAR;
+
+    if(!connectWiFi()){
+        // ToDo: display something
+        return 1;
+    }
+
+    WiFiClient wifi_client;
+    PubSubClient mqtt_client(wifi_client);
+    mqtt_client.setServer(MQTT_BROKER, 1883);
+    mqtt_client.setCallback(callback);
+    
+    int8_t retries = 20;
+    while(!mqtt_client.connected()){
+        if(retries < 0){
+            break;
+        }
+        retries--;
+
+        mqtt_client.connect("WatchyDavid");
+        delay(250);
+    }
+
+    if(!mqtt_client.connected()){
+        disconnectWiFi();
+        return 2;
+    }
+
+    mqtt_client.subscribe("weather/indoor/temperature");
+    mqtt_client.subscribe("weather/indoor/aussen/temperature");
+    mqtt_client.subscribe("weather/indoor/wind/windstrength");
+    mqtt_client.subscribe("weather/indoor/regenmesser/rain");
+    mqtt_client.subscribe("weather/indoor/wind/guststrength");
+    mqtt_client.subscribe("weather/indoor/zimmer von david/co2");
+
+    retries=20;
+    while(!MQTT_RECEIVED_ALL_DATA){
+        mqtt_client.loop();
+        if(retries < 0){
+            break;
+        }
+        retries--;
+        delay(100);
+    }
+
+    mqtt_client.disconnect();
+    disconnectWiFi();
+
+    if(!MQTT_RECEIVED_ALL_DATA){
+        return 3;
+    }
+
+    return 0;
 }
 
 
@@ -259,30 +280,61 @@ uint8_t WatchyBase::openDoor(){
 }
 
 
-void WatchyBase::drawWatchFace(){
-    if(show_mqqt_data){
-        display.fillScreen(BACKGROUND_COLOR);
-        display.setTextColor(FOREGROUND_COLOR);
-        display.setFont(&FONT_MEDIUM);
-        display.setCursor(40, 20);
-        display.print("Information");
-
-        display.setCursor(0, 60);
-        display.setFont(&FONT_SMALL);
-        display.print(" In. temp.: ");
-        display.println(indoor_temp);
-        
-        display.print(" Out. temp.: ");
-        display.println(outdoor_temp);
-
-        display.print(" Wind strength: ");
-        display.println(wind_strength);
-        return;
+void WatchyBase::drawHelperGrid(){
+    for(int i=0; i<=200; i+=20){
+        display.drawLine(i,0,i,200,FOREGROUND_COLOR);
+        display.drawLine(0,i,200,i,FOREGROUND_COLOR);
     }
+}
 
+
+void WatchyBase::drawWatchFace(){
     display.setRotation(rotation);
     display.fillScreen(BACKGROUND_COLOR);
     display.setTextColor(FOREGROUND_COLOR);
+
+    if(!show_mqqt_data){
+        return;
+    }
+
+    int16_t  x1, y1;
+    uint16_t w, h;
+    //drawHelperGrid();
+    display.drawBitmap(0, 0, smart_home, 200, 200, FOREGROUND_COLOR);
+    display.setFont(&FONT_SMALL);
+    display.getTextBounds(String(indoor_temp), 100, 180, &x1, &y1, &w, &h);
+    display.setCursor(55-w/2, 140);
+    display.print(indoor_temp);
+    display.println("C");
+
+    display.setCursor(116, 170);
+    display.print(indoor_co2);
+    display.println(" ppm");
+    display.drawLine(115, 165, 90, 150, FOREGROUND_COLOR);
+
+    display.setCursor(130, 120);
+    display.print(outdoor_temp);
+    display.println("C");
+
+    display.getTextBounds(String(indoor_temp), 100, 180, &x1, &y1, &w, &h);
+    display.setCursor(155-w/2, 40);
+    display.print(outdoor_rain);
+    display.println(" mm");
+
+    display.setCursor(10, 25);
+    display.print(outdoor_wind);
+    display.println(" km/h");
+    display.setCursor(10, 45);
+    display.print(outdoor_gusts);
+    display.println(" km/h");
+
+    if(!MQTT_RECEIVED_ALL_DATA){
+        display.setCursor(165, 195);
+        display.println("[old]");
+    }
+
+    return;
+    
 }
 
 
