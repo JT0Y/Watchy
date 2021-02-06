@@ -5,11 +5,8 @@
 #include "fonts.h"
 #include "icons.h"
 #include <WiFiManager.h>
-#include <PubSubClient.h>
 #include "Images/smart_home.h"
-
-extern RTC_DATA_ATTR bool show_mqqt_data;
-
+#include <PubSubClient.h>
 
 // IOT WIFI SETTINGS - CONTROL VIA HTTP GET ON URL
 #define WIFI_SSID      "ENTER_HERE"
@@ -19,11 +16,12 @@ extern RTC_DATA_ATTR bool show_mqqt_data;
 #define MQTT_TOPIC     "ENTER_HERE"
 #define MQTT_PAYLOAD   "ENTER_HERE"
 
-
 #if __has_include("config.h") && __has_include(<stdint.h>)
 # include "config.h"
 #endif
 
+
+extern RTC_DATA_ATTR bool show_mqqt_data;
 
 // Color settings
 extern RTC_DATA_ATTR bool dark_mode;

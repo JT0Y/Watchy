@@ -38,7 +38,7 @@ void WatchyBase::init(){
     {
         case ESP_SLEEP_WAKEUP_EXT0: //RTC Alarm
             RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
-            if(guiState == WATCHFACE_STATE){
+            if(guiState == WATCHFACE_STATE && !show_mqqt_data){
                 RTC.read(currentTime);
                 showWatchFace(true); //partial updates on tick
             }
@@ -192,7 +192,6 @@ uint8_t WatchyBase::loadMqqtData(){
     MQTT_CLEAR;
 
     if(!connectWiFi()){
-        // ToDo: display something
         return 1;
     }
 
@@ -201,18 +200,9 @@ uint8_t WatchyBase::loadMqqtData(){
     mqtt_client.setServer(MQTT_BROKER, 1883);
     mqtt_client.setCallback(callback);
     
-    int8_t retries = 20;
-    while(!mqtt_client.connected()){
-        if(retries < 0){
-            break;
-        }
-        retries--;
-
-        mqtt_client.connect("WatchyDavid");
-        delay(250);
-    }
-
+    mqtt_client.connect("WatchyDavid");
     if(!mqtt_client.connected()){
+        vibrate(1, 1000);
         disconnectWiFi();
         return 2;
     }
@@ -224,9 +214,10 @@ uint8_t WatchyBase::loadMqqtData(){
     mqtt_client.subscribe("weather/indoor/wind/guststrength");
     mqtt_client.subscribe("weather/indoor/zimmer von david/co2");
 
-    retries=20;
+    int8_t retries=20;
     while(!MQTT_RECEIVED_ALL_DATA){
         mqtt_client.loop();
+        vibrate(1, 50);
         if(retries < 0){
             break;
         }
