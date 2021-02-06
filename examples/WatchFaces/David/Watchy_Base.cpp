@@ -214,10 +214,14 @@ uint8_t WatchyBase::loadMqqtData(){
     mqtt_client.subscribe("weather/indoor/wind/guststrength");
     mqtt_client.subscribe("weather/indoor/zimmer von david/co2");
 
-    int8_t retries=20;
+    int8_t retries=25;
     while(!MQTT_RECEIVED_ALL_DATA){
         mqtt_client.loop();
-        vibrate(1, 50);
+        
+        if(retries%5==0){
+            vibrate(1, 50);
+        }
+        
         if(retries < 0){
             break;
         }
