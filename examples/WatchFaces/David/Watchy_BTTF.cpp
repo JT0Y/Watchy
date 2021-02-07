@@ -53,11 +53,11 @@ void WatchyBTTF::drawTime(){
     display.setTextColor(BACKGROUND_COLOR);
     String hourStr = String(currentTime.Hour);
     hourStr = currentTime.Hour < 10 ? "0" + hourStr : hourStr;
-    printCentered(105, 45, hourStr);
+    printCentered(101, 42, hourStr);
 
     String minStr = String(currentTime.Minute);
     minStr = currentTime.Minute < 10 ? "0" + minStr : minStr;
-    printCentered(165, 45, minStr);
+    printCentered(165, 42, minStr);
 }
 
 
@@ -66,14 +66,14 @@ void WatchyBTTF::drawDate(){
     display.setTextColor(BACKGROUND_COLOR);
 
     String month = monthShortStr(currentTime.Month);
-    printCentered(37, 105, month);
+    printCentered(35, 103, month);
 
     String dayStr = String(currentTime.Day);
     dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
-    printCentered(94, 104, dayStr);
+    printCentered(94, 103, dayStr);
 
     String yearStr = String(currentTime.Year + YEAR_OFFSET);
-    printCentered(155, 104, yearStr);
+    printCentered(157, 103, yearStr);
 }
 
 
@@ -84,7 +84,8 @@ void WatchyBTTF::drawBattery(){
     int8_t bat = getBattery();
     String batStr = String(bat);
     batStr = bat < 10 ? "0" + batStr : batStr;
-    printCentered(161, 170, batStr);
+    batStr = bat < 100 ? "0" + batStr : batStr;
+    printCentered(153, 169, batStr);
 }
 
 
@@ -106,5 +107,5 @@ void WatchyBTTF::drawSteps(){
         stepStr = steps < pow(10, i) ? "0" + stepStr : stepStr;
     }
 
-    printCentered(62, 170, stepStr);
+    printCentered(62, 169, stepStr);
 }
