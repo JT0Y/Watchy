@@ -7,6 +7,12 @@ This contains some watch-faces for the Watchy from SQFMI:
  - Jarvis
  - Back to the future
 
+*Note: To change between different watch faces adapt the Watchy.ino file. Currently, only one watch face is loaded. In future I will implement it such that you can switch between my watch-faces during runtime. But currently this is not possible...*
+
+
+<img src="doc/bttf.jpg" alt="Back to the future" />
+
+
 
 ## Buttons and other functionality
 Some basic functionality is provided for all my watchfaces via the Watchy_Base class.
