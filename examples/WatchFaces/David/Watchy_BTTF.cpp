@@ -85,7 +85,7 @@ void WatchyBTTF::drawBattery(){
     String batStr = String(bat);
     batStr = bat < 10 ? "0" + batStr : batStr;
     batStr = bat < 100 ? "0" + batStr : batStr;
-    printCentered(153, 169, batStr);
+    printCentered(151, 169, batStr);
 }
 
 
