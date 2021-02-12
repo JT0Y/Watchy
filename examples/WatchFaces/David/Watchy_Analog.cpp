@@ -66,7 +66,7 @@ void WatchyAnalog::drawTime(){
     double hx1 = 100 - (sin(radHour) * 45);
     double hy1 = 100 + (cos(radHour) * 45);
 
-    for(int i=0; i<5; i++){
+    for(int i=0; i<3; i++){
         display.drawLine(100+i, 100, (int)hx1+i, (int)hy1, FOREGROUND_COLOR);
         display.drawLine(100, 100+i, (int)hx1, (int)hy1+i, FOREGROUND_COLOR);
     }
@@ -79,7 +79,7 @@ void WatchyAnalog::drawDate(){
 
     String dayStr = String(currentTime.Day);
     dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
-    printCentered(136, 100, dayStr);
+    printCentered(134, 100, dayStr);
 }
 
 
