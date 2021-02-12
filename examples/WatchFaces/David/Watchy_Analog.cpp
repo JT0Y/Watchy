@@ -54,7 +54,7 @@ void WatchyAnalog::drawTime(){
     double radMinute = ((minuteAngle + 180) * 71) / 4068.0;
     double mx1 = 100 - (sin(radMinute) * 85);
     double my1 = 100 + (cos(radMinute) * 85);
-    for(int i=0; i<3; i++){
+    for(int i=-2; i<3; i++){
         display.drawLine(100+i, 100, (int)mx1+i, (int)my1, FOREGROUND_COLOR);
         display.drawLine(100, 100+i, (int)mx1, (int)my1+i, FOREGROUND_COLOR);
     }
@@ -66,7 +66,7 @@ void WatchyAnalog::drawTime(){
     double hx1 = 100 - (sin(radHour) * 45);
     double hy1 = 100 + (cos(radHour) * 45);
 
-    for(int i=0; i<3; i++){
+    for(int i=-2; i<3; i++){
         display.drawLine(100+i, 100, (int)hx1+i, (int)hy1, FOREGROUND_COLOR);
         display.drawLine(100, 100+i, (int)hx1, (int)hy1+i, FOREGROUND_COLOR);
     }
