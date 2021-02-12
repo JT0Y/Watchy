@@ -35,4 +35,5 @@ This should ensure that you never make this information available through git.
 
 
 # Acknowledgement
-Thanks a lot to SQFMI (https://github.com/sqfmi/Watchy) for this great project!
+- Thanks a lot to SQFMI (https://github.com/sqfmi/Watchy) for this great project!
+- https://github.com/BenjaminGabel/AnalogWatchFace

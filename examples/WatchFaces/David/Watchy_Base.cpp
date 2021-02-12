@@ -462,7 +462,7 @@ void WatchyBase::_bmaConfig(){
     // Enable BMA423 isTilt feature
     sensor.enableFeature(BMA423_TILT, true);
     // Enable BMA423 isDoubleClick feature
-    sensor.enableFeature(BMA423_WAKEUP, true);
+    //sensor.enableFeature(BMA423_WAKEUP, true);
 
     // Reset steps
     sensor.resetStepCounter();
@@ -471,7 +471,7 @@ void WatchyBase::_bmaConfig(){
     //sensor.enableStepCountInterrupt();
     //sensor.enableTiltInterrupt();
     // It corresponds to isDoubleClick interrupt
-    sensor.enableWakeupInterrupt();  
+    //sensor.enableWakeupInterrupt();  
 }
 
 
