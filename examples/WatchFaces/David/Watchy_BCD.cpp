@@ -3,7 +3,7 @@
 
 // For more fonts look here:
 // https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
-#define FONT    FreeMono12pt7b
+#define FONT    FreeMonoBold12pt7b
 
 
 WatchyBCD::WatchyBCD(){
@@ -30,6 +30,8 @@ void WatchyBCD::drawWatchFace(){
         return;
     }
 
+    display.drawBitmap(0, 0, pcb, 200, 200, FOREGROUND_COLOR);
+
     bool rtc_alarm = wakeup_reason == ESP_SLEEP_WAKEUP_EXT0;
     if(rtc_alarm && currentTime.Minute == 0 && currentTime.Hour == 0){
         sensor.resetStepCounter();
@@ -38,14 +40,12 @@ void WatchyBCD::drawWatchFace(){
     display.setFont(&FONT);
     display.setTextColor(FOREGROUND_COLOR);
 
-    if(!dark_mode){
-        for(uint8_t i=0; i<4; i++){
-            display.drawRoundRect(0+i, 0+i, 196, 196, 4, FOREGROUND_COLOR);
-        }
-    }
-    display.setCursor(50, 30);
+    display.fillRect(45, 13, 50, 21, BACKGROUND_COLOR);
+    display.setCursor(50, 28);
     display.println("10b");
-    display.setCursor(130, 30);
+
+    display.fillRect(125, 13, 50, 21, BACKGROUND_COLOR);
+    display.setCursor(130, 28);
     display.println("01b");
 
     uint32_t steps = sensor.getCounter();
@@ -64,8 +64,10 @@ void WatchyBCD::drawWatchFace(){
 
 
 void WatchyBCD::printBCD(String s, uint16_t y, uint16_t value){
+    display.fillRect(10, y-5, 22, 22, BACKGROUND_COLOR);
     display.setCursor(15, y+13);
     display.println(s);
+
     printBinary(40, y, (uint8_t) value / 10, 4);
     printBinary(120, y, (uint8_t) value % 10, 4);
 }
@@ -78,9 +80,12 @@ void WatchyBCD::printBinary(uint16_t x, uint16_t y, uint8_t value, uint8_t n){
     uint8_t gap = 2;
     uint8_t size = 15;
     uint8_t x_pos = x + (n-1)*(size+gap);
+
+    display.fillRoundRect(x_pos-gap, y-gap-1, size+2*gap, size+2*gap+2, 3, BACKGROUND_COLOR);
     if(value % 2 == 0){
         display.drawRoundRect(x_pos, y, size, size, 3, FOREGROUND_COLOR);
         display.drawRoundRect(x_pos+1, y+1, size-2, size-2, 3, FOREGROUND_COLOR);
+        display.fillRoundRect(x_pos+2, y+2, size-4, size-4, 3, BACKGROUND_COLOR);
     } else {
         display.fillRoundRect(x_pos, y, size, size, 3, FOREGROUND_COLOR);
     }
