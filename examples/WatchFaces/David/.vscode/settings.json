@@ -7,6 +7,12 @@
         "limits": "cpp",
         "streambuf": "cpp",
         "optional": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "array": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp",
+        "chrono": "cpp",
+        "algorithm": "cpp"
     }
 }
