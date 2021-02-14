@@ -7,7 +7,7 @@
 
 
 WatchyBCD::WatchyBCD(){
-
+    
 }
 
 
@@ -16,7 +16,10 @@ void WatchyBCD::handleButtonPress(){
     
     uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
     if(IS_DOUBLE_TAP){
-        // NOP
+        dark_mode = dark_mode ? false : true;
+        RTC.read(currentTime);
+        showWatchFace(false);
+        return;
     }
 }
 
@@ -35,8 +38,10 @@ void WatchyBCD::drawWatchFace(){
     display.setFont(&FONT);
     display.setTextColor(FOREGROUND_COLOR);
 
-    for(uint8_t i=0; i<4; i++){
-        display.drawRoundRect(0+i, 0+i, 196, 196, 4, FOREGROUND_COLOR);
+    if(!dark_mode){
+        for(uint8_t i=0; i<4; i++){
+            display.drawRoundRect(0+i, 0+i, 196, 196, 4, FOREGROUND_COLOR);
+        }
     }
     display.setCursor(50, 30);
     display.println("10b");
@@ -47,14 +52,14 @@ void WatchyBCD::drawWatchFace(){
     uint8_t bat = getBattery();
     bat = min((uint8_t) 99, bat);
 
-    printBCD("M", 40, currentTime.Month);
-    printBCD("D", 60, currentTime.Day);
+    printBCD("h", 40, currentTime.Hour);
+    printBCD("m", 60, currentTime.Minute);
 
-    printBCD("h", 90, currentTime.Hour);
-    printBCD("m", 110, currentTime.Minute);
+    printBCD("M", 90, currentTime.Month);
+    printBCD("D", 110, currentTime.Day);
 
     printBCD("B", 140, bat);
-    printBCD("S", 170, steps / 1000);
+    printBCD("S", 170, steps / 100);
 }
 
 
@@ -72,9 +77,10 @@ void WatchyBCD::printBinary(uint16_t x, uint16_t y, uint8_t value, uint8_t n){
 
     uint8_t gap = 2;
     uint8_t size = 15;
-    uint8_t x_pos = x + (4-n)*(size+gap);
+    uint8_t x_pos = x + (n-1)*(size+gap);
     if(value % 2 == 0){
         display.drawRoundRect(x_pos, y, size, size, 3, FOREGROUND_COLOR);
+        display.drawRoundRect(x_pos+1, y+1, size-2, size-2, 3, FOREGROUND_COLOR);
     } else {
         display.fillRoundRect(x_pos, y, size, size, 3, FOREGROUND_COLOR);
     }

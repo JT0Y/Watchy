@@ -314,7 +314,6 @@ void WatchyBase::drawWatchFace(){
 
     int16_t  x1, y1;
     uint16_t w, h;
-    //drawHelperGrid();
     display.drawBitmap(0, 0, smart_home, 200, 200, FOREGROUND_COLOR);
     display.setFont(&FONT_SMALL);
     display.getTextBounds(String(indoor_temp), 100, 180, &x1, &y1, &w, &h);
@@ -462,7 +461,7 @@ void WatchyBase::_bmaConfig(){
     // Enable BMA423 isTilt feature
     sensor.enableFeature(BMA423_TILT, true);
     // Enable BMA423 isDoubleClick feature
-    //sensor.enableFeature(BMA423_WAKEUP, true);
+    sensor.enableFeature(BMA423_WAKEUP, true);
 
     // Reset steps
     sensor.resetStepCounter();
@@ -471,7 +470,7 @@ void WatchyBase::_bmaConfig(){
     //sensor.enableStepCountInterrupt();
     //sensor.enableTiltInterrupt();
     // It corresponds to isDoubleClick interrupt
-    //sensor.enableWakeupInterrupt();  
+    sensor.enableWakeupInterrupt();  
 }
 
 

@@ -8,7 +8,7 @@
 #define FONT    FreeSans12pt7b
 
 WatchyAnalog::WatchyAnalog(){
-    //dark_mode=true;
+    
 }
 
 
@@ -17,7 +17,10 @@ void WatchyAnalog::handleButtonPress(){
     
     uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
     if(IS_DOUBLE_TAP){
-        // NOP
+        dark_mode = dark_mode ? false : true;
+        RTC.read(currentTime);
+        showWatchFace(false);
+        return;
     }
 }
 
