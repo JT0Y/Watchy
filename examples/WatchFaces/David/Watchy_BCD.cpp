@@ -40,36 +40,42 @@ void WatchyBCD::drawWatchFace(){
     display.setFont(&FONT);
     display.setTextColor(FOREGROUND_COLOR);
 
-    display.fillRect(45, 13, 50, 21, BACKGROUND_COLOR);
-    display.setCursor(50, 28);
+    display.fillRect(43, 5, 50, 21, BACKGROUND_COLOR);
+    display.setCursor(48, 20);
     display.println("10b");
 
-    display.fillRect(125, 13, 50, 21, BACKGROUND_COLOR);
-    display.setCursor(130, 28);
+    display.fillRect(123, 5, 50, 21, BACKGROUND_COLOR);
+    display.setCursor(128, 20);
     display.println("01b");
 
     uint32_t steps = sensor.getCounter();
     uint8_t bat = getBattery();
     bat = min((uint8_t) 99, bat);
 
-    printBCD("h", 40, currentTime.Hour);
-    printBCD("m", 60, currentTime.Minute);
+    printBCD("h", 30, currentTime.Hour);
+    printBCD("m", 50, currentTime.Minute);
 
-    printBCD("M", 90, currentTime.Month);
-    printBCD("D", 110, currentTime.Day);
+    printBCD("M", 80, currentTime.Month);
+    printBCD("D", 100, currentTime.Day);
 
-    printBCD("B", 140, bat);
-    printBCD("S", 170, steps / 100);
+    printBCD("B", 130, bat);
+
+    uint32_t setps_10k = steps / 1000;
+    uint32_t steps_100 = (steps - 1000*setps_10k) / 10;    
+    printBCD("S", 160, setps_10k);
+    printBCD("", 180, steps_100);
 }
 
 
 void WatchyBCD::printBCD(String s, uint16_t y, uint16_t value){
-    display.fillRect(10, y-5, 22, 22, BACKGROUND_COLOR);
-    display.setCursor(15, y+13);
-    display.println(s);
+    if(s != ""){
+        display.fillRect(8, y-5, 22, 22, BACKGROUND_COLOR);
+        display.setCursor(13, y+13);
+        display.println(s);
+    }
 
-    printBinary(40, y, (uint8_t) value / 10, 4);
-    printBinary(120, y, (uint8_t) value % 10, 4);
+    printBinary(38, y, (uint8_t) value / 10, 4);
+    printBinary(118, y, (uint8_t) value % 10, 4);
 }
 
 void WatchyBCD::printBinary(uint16_t x, uint16_t y, uint8_t value, uint8_t n){
