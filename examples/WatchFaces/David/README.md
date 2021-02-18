@@ -3,10 +3,16 @@
 This project contains different watch-faces for the watchy from SQFMI and 
 it also integrates the watchy into a smart-home via MQTT.
 
-Some basic functionality is provided for all my watchfaces via the Watchy_Base class.
-Namely, the buttons are used and an MQTT publisher is implemented such that 
-you can send actions to other IOT devices using you watchy. Therefore, also 
-the PubSubClient library must be installed within your Arduino environment.
+Some basic functionality is provided for all my watchfaces via the Watchy_Base 
+class. For example the *sleep-mode* starts at 01:00 and statically displays 
+an image, until a button is pressed to increase battery life further (~ 3 days).
+
+Another feature that is provided is, that the buttons are used:
+ - upper left to rotate the watch-face 180°
+ - upper right to read weather data from an mqtt broker
+ - lower right to trigger something via MQTT (e.g. open a door)
+
+Note: The PubSubClient library must be installed within your Arduino environment.
 
 
 ## Watch faces
@@ -14,9 +20,9 @@ The following watch-faces are currently implemented:
 - Step counter
 - Jarvis
 - Back to the future
+- Analog
+- BCD
 
-Here you can see a picture of my back-to-the-future inspired watch face: <br/>
-<img src="doc/bttf.jpg" alt="Back to the future" />
 
 *Note: To change between different watch faces adapt the Watchy.ino file. Currently, only one watch face is loaded. In future I will implement it such that you can switch between my watch-faces during runtime. But currently this is not possible...*
 
