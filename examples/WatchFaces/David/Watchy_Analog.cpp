@@ -27,7 +27,7 @@ void WatchyAnalog::handleButtonPress(){
 
 void WatchyAnalog::drawWatchFace(){
     WatchyBase::drawWatchFace();
-    if(show_mqqt_data){
+    if(watchFaceDisabled()){
         return;
     }
 

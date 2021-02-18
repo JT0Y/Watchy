@@ -29,7 +29,7 @@ void WatchyJarvis::handleButtonPress(){
 
 void WatchyJarvis::drawWatchFace(){
     WatchyBase::drawWatchFace();
-    if(show_mqqt_data){
+    if(watchFaceDisabled()){
         return;
     }
 

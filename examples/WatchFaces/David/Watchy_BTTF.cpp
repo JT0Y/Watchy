@@ -25,7 +25,7 @@ void WatchyBTTF::handleButtonPress(){
 
 void WatchyBTTF::drawWatchFace(){
     WatchyBase::drawWatchFace();
-    if(show_mqqt_data){
+    if(watchFaceDisabled()){
         return;
     }
 

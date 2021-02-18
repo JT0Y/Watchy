@@ -28,7 +28,7 @@ RTC_DATA_ATTR float outdoor_temp = 0.0;
 RTC_DATA_ATTR int outdoor_rain = 0.0;
 RTC_DATA_ATTR int outdoor_wind = 0;
 RTC_DATA_ATTR int outdoor_gusts = 0;
-
+RTC_DATA_ATTR bool sleep_mode = false;
 
 /*
  * FUNCTIONS
@@ -48,12 +48,30 @@ void WatchyBase::init(){
             RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
             if(guiState == WATCHFACE_STATE && !show_mqqt_data){
                 RTC.read(currentTime);
+
+                if(currentTime.Hour == 1 && currentTime.Minute == 0){
+                    sleep_mode = true;
+                    RTC.alarmInterrupt(ALARM_2, false);
+                }
+
                 showWatchFace(true); //partial updates on tick
             }
             break;
-        case ESP_SLEEP_WAKEUP_EXT1: //button Press
+
+        case ESP_SLEEP_WAKEUP_EXT1: //button Press + no handling if wakeup
+            if(sleep_mode){
+                sleep_mode = false;
+                RTC.alarmInterrupt(ALARM_2, true);
+                RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
+                
+                RTC.read(currentTime);
+                showWatchFace(false); //full update on wakeup from sleep mode
+                break;
+            }
+
             handleButtonPress();
             break;
+            
         default: //reset
             _rtcConfig();
             _bmaConfig();
@@ -61,6 +79,11 @@ void WatchyBase::init(){
             break;
     }
     deepSleep();
+}
+
+
+bool WatchyBase::watchFaceDisabled(){
+    return show_mqqt_data || sleep_mode;
 }
 
 void WatchyBase::deepSleep(){
@@ -308,48 +331,48 @@ void WatchyBase::drawWatchFace(){
     display.fillScreen(BACKGROUND_COLOR);
     display.setTextColor(FOREGROUND_COLOR);
 
-    if(!show_mqqt_data){
+    if(sleep_mode){
+        display.drawBitmap(0, 0, sleep_img, 200, 200, FOREGROUND_COLOR);
         return;
     }
 
-    int16_t  x1, y1;
-    uint16_t w, h;
-    //drawHelperGrid();
-    display.drawBitmap(0, 0, smart_home, 200, 200, FOREGROUND_COLOR);
-    display.setFont(&FONT_SMALL);
-    display.getTextBounds(String(indoor_temp), 100, 180, &x1, &y1, &w, &h);
-    display.setCursor(55-w/2, 140);
-    display.print(indoor_temp);
-    display.println("C");
+    if(show_mqqt_data){
+        int16_t  x1, y1;
+        uint16_t w, h;
+        //drawHelperGrid();
+        display.drawBitmap(0, 0, smart_home, 200, 200, FOREGROUND_COLOR);
+        display.setFont(&FONT_SMALL);
+        display.getTextBounds(String(indoor_temp), 100, 180, &x1, &y1, &w, &h);
+        display.setCursor(55-w/2, 140);
+        display.print(indoor_temp);
+        display.println("C");
 
-    display.setCursor(116, 170);
-    display.print(indoor_co2);
-    display.println(" ppm");
-    display.drawLine(115, 165, 90, 150, FOREGROUND_COLOR);
+        display.setCursor(116, 170);
+        display.print(indoor_co2);
+        display.println(" ppm");
+        display.drawLine(115, 165, 90, 150, FOREGROUND_COLOR);
 
-    display.setCursor(130, 120);
-    display.print(outdoor_temp);
-    display.println("C");
+        display.setCursor(130, 120);
+        display.print(outdoor_temp);
+        display.println("C");
 
-    display.getTextBounds(String(indoor_temp), 100, 180, &x1, &y1, &w, &h);
-    display.setCursor(155-w/2, 40);
-    display.print(outdoor_rain);
-    display.println(" mm");
+        display.getTextBounds(String(indoor_temp), 100, 180, &x1, &y1, &w, &h);
+        display.setCursor(155-w/2, 40);
+        display.print(outdoor_rain);
+        display.println(" mm");
 
-    display.setCursor(10, 25);
-    display.print(outdoor_wind);
-    display.println(" km/h");
-    display.setCursor(10, 45);
-    display.print(outdoor_gusts);
-    display.println(" km/h");
+        display.setCursor(10, 25);
+        display.print(outdoor_wind);
+        display.println(" km/h");
+        display.setCursor(10, 45);
+        display.print(outdoor_gusts);
+        display.println(" km/h");
 
-    if(!MQTT_RECEIVED_ALL_DATA){
-        display.setCursor(165, 195);
-        display.println("[old]");
-    }
-
-    return;
-    
+        if(!MQTT_RECEIVED_ALL_DATA){
+            display.setCursor(165, 195);
+            display.println("[old]");
+        }
+    }    
 }
 
 

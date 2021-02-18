@@ -36,7 +36,7 @@ void WatchyStep::handleButtonPress(){
 
 void WatchyStep::drawWatchFace(){
     WatchyBase::drawWatchFace();
-    if(show_mqqt_data){
+    if(watchFaceDisabled()){
         return;
     }
     

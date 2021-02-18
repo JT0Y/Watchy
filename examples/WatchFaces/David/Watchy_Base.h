@@ -6,6 +6,7 @@
 #include "icons.h"
 #include <WiFiManager.h>
 #include "Images/smart_home.h"
+#include "Images/sleep.h"
 #include <PubSubClient.h>
 
 // IOT WIFI SETTINGS - CONTROL VIA HTTP GET ON URL
@@ -55,6 +56,7 @@ class WatchyBase : public Watchy {
         uint8_t loadMqqtData();
         void drawHelperGrid();
         void drawMqqtData();
+        bool watchFaceDisabled();
 
         esp_sleep_wakeup_cause_t wakeup_reason;
     private:
