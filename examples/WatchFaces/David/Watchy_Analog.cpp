@@ -5,7 +5,7 @@
 // https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
 //#define FONT_LARGE       Bohemian_Typewriter22pt7b
 //#define FONT_MEDUM       Bohemian_Typewriter18pt7b
-#define FONT    FreeSans12pt7b
+#define FONT            FreeSansBold12pt7b
 
 WatchyAnalog::WatchyAnalog(){
     
@@ -32,10 +32,10 @@ void WatchyAnalog::drawWatchFace(){
     }
 
     display.drawBitmap(0, 0, analog, 200, 200, FOREGROUND_COLOR);
-    drawTime();
     drawDate();
     drawSteps();
     drawBattery();
+    drawTime();
     
     //drawHelperGrid();
 }
@@ -78,11 +78,11 @@ void WatchyAnalog::drawTime(){
 
 void WatchyAnalog::drawDate(){
     display.setFont(&FONT);
-    display.setTextColor(BACKGROUND_COLOR);
+    display.setTextColor(FOREGROUND_COLOR);
 
     String dayStr = String(currentTime.Day);
     dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
-    printCentered(134, 100, dayStr);
+    printCentered(135, 140, dayStr);
 }
 
 
@@ -91,10 +91,10 @@ void WatchyAnalog::drawBattery(){
     display.setTextColor(FOREGROUND_COLOR);
 
     int8_t bat = getBattery();
+    bat = bat >= 100 ? 99 : bat;
     String batStr = String(bat);
     batStr = bat < 10 ? "0" + batStr : batStr;
-    batStr = batStr + "%";
-    printCentered(100, 55, batStr);
+    printCentered(67, 140, batStr);
 }
 
 
@@ -111,5 +111,5 @@ void WatchyAnalog::drawSteps(){
     }
     
     uint32_t steps = sensor.getCounter();
-    printCentered(100, 145, String(steps));
+    printCentered(100, 40, String(steps));
 }
