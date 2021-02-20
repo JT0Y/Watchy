@@ -9,7 +9,10 @@
 #include "Images/sleep.h"
 #include <PubSubClient.h>
 
-// IOT WIFI SETTINGS - CONTROL VIA HTTP GET ON URL
+
+// ---- USER SETTINGS ----------------------------
+// Note: The user settings can also be specified
+//       in config.h - its loaded if it exists.
 #define WIFI_SSID      "ENTER_HERE"
 #define WIFI_PASS      "ENTER_HERE"
 
@@ -17,9 +20,15 @@
 #define MQTT_TOPIC     "ENTER_HERE"
 #define MQTT_PAYLOAD   "ENTER_HERE"
 
+#define SLEEP_HOUR          1
+#define SLEEP_MINUTE        0
+
+#define BATTERY_OFFSET      0.25    // This offset is different for each watchy [V]
+
 #if __has_include("config.h") && __has_include(<stdint.h>)
 # include "config.h"
 #endif
+// -----------------------------------------------
 
 
 extern RTC_DATA_ATTR bool show_mqqt_data;
@@ -34,12 +43,11 @@ extern RTC_DATA_ATTR bool show_mqqt_data;
 extern RTC_DATA_ATTR bool dark_mode;
 #define FOREGROUND_COLOR    (dark_mode ? GxEPD_WHITE : GxEPD_BLACK)
 #define BACKGROUND_COLOR    (dark_mode ? GxEPD_BLACK : GxEPD_WHITE)
-#define GRAPH_COLOR         FOREGROUND_COLOR
-#define BATTERY_OFFSET      0.25    // This offset is different for each watch [V]
 
 // Other settings 
 //#define EXT_INT_MASK        MENU_BTN_MASK|BACK_BTN_MASK|UP_BTN_MASK|DOWN_BTN_MASK|ACC_INT_MASK
 #define EXT_INT_MASK        MENU_BTN_MASK|BACK_BTN_MASK|UP_BTN_MASK|DOWN_BTN_MASK
+
 
 class WatchyBase : public Watchy {
     public:

@@ -49,7 +49,7 @@ void WatchyBase::init(){
             if(guiState == WATCHFACE_STATE && !show_mqqt_data){
                 RTC.read(currentTime);
 
-                if(currentTime.Hour == 1 && currentTime.Minute == 0){
+                if(currentTime.Hour == SLEEP_HOUR && currentTime.Minute == SLEEP_MINUTE){
                     sleep_mode = true;
                     RTC.alarmInterrupt(ALARM_2, false);
                 }
