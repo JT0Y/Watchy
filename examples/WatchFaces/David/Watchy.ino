@@ -7,12 +7,14 @@
 // #include "Watchy_BTTF.h"
 // WatchyBTTF watchy;
 
-#include "Watchy_Analog.h"
-WatchyAnalog watchy;
+// #include "Watchy_Analog.h"
+// WatchyAnalog watchy;
 
 //#include "Watchy_BCD.h"
 //WatchyBCD watchy;
 
+#include "Watchy_LCARS.h"
+WatchyLCARS watchy;
 
 void setup(){
   watchy.init();
