@@ -147,14 +147,17 @@ void WatchyBase::handleButtonPress(){
         if(alarm_timer < 60 * 24){
             alarm_timer += alarm_timer < 20 ? 5 : 10;
         }
-
-        uint8_t delta_hours = uint8_t(alarm_timer / 60);
-        uint8_t hours = (delta_hours + currentTime.Hour) % 24; 
-        uint8_t delta_minutes = (alarm_timer - delta_hours * 60);
-        uint8_t minutes = (currentTime.Minute + delta_minutes) % 60;
-        uint8_t seconds = currentTime.Second;
         
-        RTC.setAlarm(ALM1_MATCH_HOURS, seconds, minutes, hours, 0);
+        // Sum minutes to current time
+        uint8_t hours;
+        uint8_t minutes;
+        uint8_t seconds = currentTime.Second;
+        _minutesToHM(alarm_timer, hours, minutes);
+        minutes += currentTime.Minute;
+        hours += uint8_t(minutes / 60);
+        hours += currentTime.Hour;
+        
+        RTC.setAlarm(ALM1_MATCH_HOURS, seconds, minutes % 60, hours % 24, 0);
         RTC.alarmInterrupt(ALARM_1, true);
         vibrate();
         
@@ -193,6 +196,19 @@ void WatchyBase::handleButtonPress(){
     }
     
     Watchy::handleButtonPress();
+}
+
+
+
+void WatchyBase::_minutesToHM(int16_t minutes, uint8_t &h, uint8_t &m) {
+    uint32_t t = minutes * 60;
+    uint8_t s = t % 60;
+
+    t = (t - s)/60;
+    m = t % 60;
+
+    t = (t - m)/60;
+    h = t;
 }
 
 

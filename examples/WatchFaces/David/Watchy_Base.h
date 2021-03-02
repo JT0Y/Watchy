@@ -69,6 +69,7 @@ class WatchyBase : public Watchy {
 
         esp_sleep_wakeup_cause_t wakeup_reason;
     private:
+        void _minutesToHM(int16_t minutes, uint8_t &h, uint8_t &m);
         void _rtcConfig();    
         void _bmaConfig();
         static uint16_t _readRegister(uint8_t address, uint8_t reg, uint8_t *data, uint16_t len);
