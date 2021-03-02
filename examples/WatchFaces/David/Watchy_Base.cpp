@@ -11,6 +11,7 @@
 
 // Store in RTC RAM, otherwise we loose information between different interrupts
 RTC_DATA_ATTR uint8_t rotation = 0;
+RTC_DATA_ATTR int16_t alarm_timer = -1;
 RTC_DATA_ATTR bool dark_mode = false;
 
 // Variables needed to show data from our MQTT broker
@@ -45,7 +46,25 @@ void WatchyBase::init(){
     switch (wakeup_reason)
     {
         case ESP_SLEEP_WAKEUP_EXT0: //RTC Alarm
+
+            // Handle alarm
+            if(RTC.checkAlarm(ALARM_1)){
+                RTC.alarm(ALARM_1); // resets the alarm flag in the RTC
+                RTC.alarmInterrupt(ALARM_1, false); // disable interrupt
+                RTC.clearAlarm(ALARM_1);
+                
+                vibrate(3, 500);
+                alarm_timer = -1;
+
+                // Continue to update watch face
+            }
+
+            // Handle classical tick
             RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
+            if(alarm_timer > 0){
+                alarm_timer--;
+            }
+
             if(guiState == WATCHFACE_STATE && !show_mqqt_data){
                 RTC.read(currentTime);
 
@@ -78,6 +97,13 @@ void WatchyBase::init(){
             showWatchFace(false); //full update on reset
             break;
     }
+
+    // Sometimes BMA crashes - simply try to reinitialize bma...
+    if(sensor.getErrorCode() != 0){
+        sensor.softReset();
+        _bmaConfig();
+    }
+
     deepSleep();
 }
 
@@ -107,9 +133,32 @@ void WatchyBase::handleButtonPress(){
     }
 
     if (IS_BTN_LEFT_UP){
-        rotation = rotation == 2 ? 0 : 2;
+
         RTC.read(currentTime);
-        showWatchFace(false);
+
+        RTC.alarm(ALARM_1);     // resets the alarm flag in the RTC
+        RTC.clearAlarm(ALARM_1);
+        RTC.alarmInterrupt(ALARM_1, false);
+
+        if(alarm_timer < 0){
+            alarm_timer = 0;
+        }
+
+        if(alarm_timer < 60 * 24){
+            alarm_timer += alarm_timer < 20 ? 5 : 10;
+        }
+
+        uint8_t delta_hours = uint8_t(alarm_timer / 60);
+        uint8_t hours = (delta_hours + currentTime.Hour) % 24; 
+        uint8_t delta_minutes = (alarm_timer - delta_hours * 60);
+        uint8_t minutes = (currentTime.Minute + delta_minutes) % 60;
+        uint8_t seconds = currentTime.Second;
+        
+        RTC.setAlarm(ALM1_MATCH_HOURS, seconds, minutes, hours, 0);
+        RTC.alarmInterrupt(ALARM_1, true);
+        vibrate();
+        
+        showWatchFace(true);
         return;
     }
 
@@ -488,7 +537,7 @@ void WatchyBase::_bmaConfig(){
     //sensor.enableFeature(BMA423_WAKEUP, true);
 
     // Reset steps
-    sensor.resetStepCounter();
+    //sensor.resetStepCounter();
 
     // Turn on feature interrupt
     //sensor.enableStepCountInterrupt();

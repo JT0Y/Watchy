@@ -32,6 +32,7 @@
 
 
 extern RTC_DATA_ATTR bool show_mqqt_data;
+extern RTC_DATA_ATTR int16_t alarm_timer;
 
 // Btn definitions
 #define IS_DOUBLE_TAP       (wakeupBit & ACC_INT_MASK && guiState == WATCHFACE_STATE)

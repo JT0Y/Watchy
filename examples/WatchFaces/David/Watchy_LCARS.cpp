@@ -35,6 +35,7 @@ void WatchyLCARS::drawWatchFace(){
     drawDate();
     drawSteps();
     drawBattery();
+    drawAlarm();
     //drawHelperGrid();
 }
 
@@ -65,11 +66,11 @@ void WatchyLCARS::drawDate(){
     display.setFont(&FONT_SMALL);
     display.setTextColor(BACKGROUND_COLOR);
 
-    String month = monthShortStr(currentTime.Month);
+    String dayOfWeek = dayShortStr(currentTime.Wday);
     String dayStr = String(currentTime.Day);
     dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
-    display.setCursor(60, 120);
-    display.println(month + " " + dayStr);
+    display.setCursor(65, 93);
+    display.println(dayOfWeek + " " + dayStr);
 }
 
 
@@ -81,8 +82,21 @@ void WatchyLCARS::drawBattery(){
     bat = bat >= 100 ? 99 : bat;
     String batStr = String(bat);
     batStr = bat < 10 ? "0" + batStr : batStr;
-    display.setCursor(60, 145);
+    display.setCursor(65, 118);
     display.println("BAT. " + batStr + "%");
+}
+
+
+void WatchyLCARS::drawAlarm(){   
+    display.setFont(&FONT_SMALL);
+    display.setTextColor(BACKGROUND_COLOR);
+
+    display.setCursor(65, 143);
+    if(alarm_timer < 0){
+        display.println("Alarm off");
+    } else {
+        display.println("T-" + String(alarm_timer) + " min.");
+    }
 }
 
 
