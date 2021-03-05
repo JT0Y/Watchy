@@ -145,7 +145,7 @@ void WatchyBase::handleButtonPress(){
         }
 
         if(alarm_timer < 60 * 24){
-            alarm_timer += alarm_timer < 20 ? 5 : 10;
+            alarm_timer += alarm_timer < 60 ? 5 : 10;
         }
         
         // Sum minutes to current time

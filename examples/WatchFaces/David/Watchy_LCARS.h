@@ -16,6 +16,7 @@ class WatchyLCARS : public WatchyBase {
         void drawSteps();
         void drawBattery();
         void drawAlarm();
+        void drawTemperature();
         void handleButtonPress();
     
     private:

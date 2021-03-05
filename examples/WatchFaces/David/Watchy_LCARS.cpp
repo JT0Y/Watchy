@@ -36,6 +36,7 @@ void WatchyLCARS::drawWatchFace(){
     drawSteps();
     drawBattery();
     drawAlarm();
+    drawTemperature();
     //drawHelperGrid();
 }
 
@@ -58,7 +59,7 @@ void WatchyLCARS::drawTime(){
 
     String minStr = String(currentTime.Minute);
     minStr = currentTime.Minute < 10 ? "0" + minStr : minStr;
-    printCentered(90, 27, hourStr + ":" + minStr);
+    printCentered(70, 27, hourStr + ":" + minStr);
 }
 
 
@@ -69,10 +70,21 @@ void WatchyLCARS::drawDate(){
     String dayOfWeek = dayShortStr(currentTime.Wday);
     String dayStr = String(currentTime.Day);
     dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
-    display.setCursor(65, 93);
-    display.println(dayOfWeek + " " + dayStr);
+    display.setCursor(155, 25);
+    display.println(dayStr);
+    display.setCursor(155, 45);
+    display.println(dayOfWeek);
 }
 
+
+void WatchyLCARS::drawTemperature(){
+    display.setFont(&FONT_SMALL);
+    display.setTextColor(BACKGROUND_COLOR);
+
+    uint8_t temperature = RTC.temperature() / 4;
+    display.setCursor(65, 93);
+    display.println("Temp. " + String(temperature));
+}
 
 void WatchyLCARS::drawBattery(){   
     display.setFont(&FONT_SMALL);
