@@ -48,10 +48,8 @@ void WatchyBase::init(){
         case ESP_SLEEP_WAKEUP_EXT0: //RTC Alarm
 
             // Handle alarm
-            if(RTC.checkAlarm(ALARM_1)){
-                RTC.alarm(ALARM_1); // resets the alarm flag in the RTC
+            if(RTC.alarm(ALARM_1)){
                 RTC.alarmInterrupt(ALARM_1, false); // disable interrupt
-                RTC.clearAlarm(ALARM_1);
                 
                 vibrate(3, 500);
                 alarm_timer = -1;
@@ -135,10 +133,6 @@ void WatchyBase::handleButtonPress(){
     if (IS_BTN_LEFT_UP){
 
         RTC.read(currentTime);
-
-        RTC.alarm(ALARM_1);     // resets the alarm flag in the RTC
-        RTC.clearAlarm(ALARM_1);
-        RTC.alarmInterrupt(ALARM_1, false);
 
         if(alarm_timer < 0){
             alarm_timer = 0;
