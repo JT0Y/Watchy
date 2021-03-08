@@ -16,8 +16,8 @@
 #include "Fonts/Bitwise_m19x18pt7b.h"
 #include "Fonts/Seven_Seg24pt7b.h"
 #include "Fonts/Seven_Seg18pt7b.h"
-#include "Fonts/URWGothic_Demi10pt7b.h"
-#include "Fonts/URWGothic_Demi12pt7b.h"
-#include "Fonts/URWGothic_Demi20pt7b.h"
+#include "Fonts/Okuda_A5PL14pt7b.h"
+#include "Fonts/Okuda_A5PL16pt7b.h"
+#include "Fonts/Okuda_A5PL25pt7b.h"
 
 #endif

@@ -5,9 +5,9 @@
 // https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
 //#define FONT_LARGE       Bohemian_Typewriter22pt7b
 //#define FONT_MEDUM       Bohemian_Typewriter18pt7b
-#define FONT_LARGE    URWGothic_Demi20pt7b
-#define FONT_MEDIUM   URWGothic_Demi12pt7b
-#define FONT_SMALL    URWGothic_Demi10pt7b
+#define FONT_LARGE    Okuda_A5PL25pt7b
+#define FONT_MEDIUM   Okuda_A5PL16pt7b
+#define FONT_SMALL    Okuda_A5PL14pt7b
 
 WatchyLCARS::WatchyLCARS(){
 
@@ -30,14 +30,21 @@ void WatchyLCARS::drawWatchFace(){
         return;
     }
 
+    // Draw background
     display.drawBitmap(0, 0, lcars_img, 200, 200, FOREGROUND_COLOR);
+    display.setFont(&FONT_SMALL);
+    display.setTextColor(BACKGROUND_COLOR);
+    display.setCursor(110, 185);
+    display.println("STEP");
+    display.setCursor(60, 93);
+    display.println("lcars-watchy");
+
+    // Draw data
     drawTime();
     drawDate();
     drawSteps();
     drawBattery();
     drawAlarm();
-    drawTemperature();
-    //drawHelperGrid();
 }
 
 
@@ -59,7 +66,7 @@ void WatchyLCARS::drawTime(){
 
     String minStr = String(currentTime.Minute);
     minStr = currentTime.Minute < 10 ? "0" + minStr : minStr;
-    printCentered(75, 27, hourStr + ":" + minStr);
+    printCentered(55, 27, hourStr + ":" + minStr);
 }
 
 
@@ -70,46 +77,51 @@ void WatchyLCARS::drawDate(){
     String dayOfWeek = dayShortStr(currentTime.Wday);
     String dayStr = String(currentTime.Day);
     dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
-    display.setCursor(155, 25);
+    display.setCursor(97, 25);
     display.println(dayStr);
-    display.setCursor(155, 45);
+    display.setCursor(97, 47);
     display.println(dayOfWeek);
 }
 
 
-void WatchyLCARS::drawTemperature(){
-    display.setFont(&FONT_SMALL);
-    display.setTextColor(BACKGROUND_COLOR);
-
-    uint8_t temperature = RTC.temperature() / 4;
-    display.setCursor(65, 93);
-    display.println("Temp. " + String(temperature));
-}
-
 void WatchyLCARS::drawBattery(){   
-    display.setFont(&FONT_SMALL);
+    display.setFont(&FONT_MEDIUM);
     display.setTextColor(BACKGROUND_COLOR);
 
     int8_t bat = getBattery();
     bat = bat >= 100 ? 99 : bat;
     String batStr = String(bat);
     batStr = bat < 10 ? "0" + batStr : batStr;
-    display.setCursor(65, 118);
-    display.println("BAT. " + batStr + "%");
+    display.setCursor(35, 125);
+    display.println("battery: ");
+    display.setCursor(113, 125);
+    display.println(batStr + "%");
 }
 
 
 void WatchyLCARS::drawAlarm(){   
-    display.setFont(&FONT_SMALL);
+    display.setFont(&FONT_MEDIUM);
     display.setTextColor(BACKGROUND_COLOR);
 
-    display.setCursor(65, 143);
+    display.setCursor(35, 151);
+    display.println("alarm:");
+    display.setCursor(113, 151);
     if(alarm_timer < 0){
-        display.println("Alarm off");
+        display.println("off");
     } else {
-        display.println("T-" + String(alarm_timer) + " min.");
+        display.println("T-" + String(alarm_timer));
     }
 }
+
+
+// void WatchyLCARS::drawTemperature(){
+//     display.setFont(&FONT_SMALL);
+//     display.setTextColor(BACKGROUND_COLOR);
+
+//     uint8_t temperature = RTC.temperature() / 4;
+//     display.setCursor(65, 143);
+//     display.println("Temp. " + String(temperature));
+// }
 
 
 void WatchyLCARS::drawSteps(){   
