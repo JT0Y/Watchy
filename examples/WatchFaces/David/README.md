@@ -8,7 +8,7 @@ class. For example the *sleep-mode* starts at 01:00 and statically displays
 an image, until a button is pressed to increase battery life further (~ 3 days).
 
 Another feature that is provided is, that the buttons are used:
- - upper left to rotate the watch-face 180°
+ - upper left to set an alarm
  - upper right to read weather data from an mqtt broker
  - lower right to trigger something via MQTT (e.g. open a door)
 
