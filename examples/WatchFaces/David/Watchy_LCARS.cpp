@@ -66,7 +66,7 @@ void WatchyLCARS::drawTime(){
 
     String minStr = String(currentTime.Minute);
     minStr = currentTime.Minute < 10 ? "0" + minStr : minStr;
-    printCentered(55, 27, hourStr + ":" + minStr);
+    printCentered(55, 25, hourStr + ":" + minStr);
 }
 
 
