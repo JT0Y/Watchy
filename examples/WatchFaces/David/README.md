@@ -19,9 +19,10 @@ Note: The PubSubClient library must be installed within your Arduino environment
 The following watch-faces are currently implemented:
 - Step counter
 - Jarvis
-- Back to the future
+- Back to the future (BTTF)
 - Analog
 - BCD
+- LCARS
 
 
 *Note: To change between different watch faces adapt the Watchy.ino file. Currently, only one watch face is loaded. In future I will implement it such that you can switch between my watch-faces during runtime. But currently this is not possible...*
