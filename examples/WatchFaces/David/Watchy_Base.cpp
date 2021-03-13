@@ -48,7 +48,7 @@ void WatchyBase::init(){
         case ESP_SLEEP_WAKEUP_EXT0: //RTC Alarm
 
             // Handle alarm
-            if(RTC.alarm(ALARM_1)){
+            if(RTC.alarm(ALARM_1) && alarm_timer >= 0){
                 RTC.alarmInterrupt(ALARM_1, false); // disable interrupt
                 
                 vibrate(3, 500);
@@ -59,6 +59,9 @@ void WatchyBase::init(){
 
             // Handle classical tick
             RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
+            
+            // Only for visualization and to ensure that alarm is not triggered
+            // again and a gain as the alarm flag is internally set every time...
             if(alarm_timer > 0){
                 alarm_timer--;
             }
