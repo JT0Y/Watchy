@@ -19,5 +19,7 @@
 #include "Fonts/Okuda_A5PL14pt7b.h"
 #include "Fonts/Okuda_A5PL16pt7b.h"
 #include "Fonts/Okuda_A5PL25pt7b.h"
+#include "Fonts/UbuntuMono_R12pt7b.h"
+#include "Fonts/UbuntuMono_B12pt7b.h"
 
 #endif

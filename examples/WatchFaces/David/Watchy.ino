@@ -13,8 +13,11 @@
 //#include "Watchy_BCD.h"
 //WatchyBCD watchy;
 
-#include "Watchy_LCARS.h"
-WatchyLCARS watchy;
+// #include "Watchy_LCARS.h"
+// WatchyLCARS watchy;
+
+#include "Watchy_Linux.h"
+WatchyLinux watchy;
 
 void setup(){
   watchy.init();
