@@ -5,16 +5,16 @@
 // https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
 //#define FONT_LARGE       Bohemian_Typewriter22pt7b
 //#define FONT_MEDUM       Bohemian_Typewriter18pt7b
-#define FONT            FreeSansBold12pt7b
+#define FONT            WallingtonRegular12pt7b
 
 WatchyAnalog::WatchyAnalog(){
-    
+
 }
 
 
 void WatchyAnalog::handleButtonPress(){
     WatchyBase::handleButtonPress();
-    
+
     uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
     if(IS_DOUBLE_TAP){
         dark_mode = dark_mode ? false : true;
@@ -36,7 +36,8 @@ void WatchyAnalog::drawWatchFace(){
     drawSteps();
     drawBattery();
     drawTime();
-    
+    drawAlarm();
+
     //drawHelperGrid();
 }
 
@@ -51,7 +52,7 @@ void WatchyAnalog::printCentered(uint16_t x, uint16_t y, String text){
 }
 
 
-void WatchyAnalog::drawTime(){    
+void WatchyAnalog::drawTime(){
     int currentMinute = currentTime.Minute;
     int minuteAngle = currentMinute * 6;
     double radMinute = ((minuteAngle + 180) * 71) / 4068.0;
@@ -80,13 +81,26 @@ void WatchyAnalog::drawDate(){
     display.setFont(&FONT);
     display.setTextColor(FOREGROUND_COLOR);
 
+    String dayOfWeek = dayShortStr(currentTime.Wday);
     String dayStr = String(currentTime.Day);
     dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
-    printCentered(135, 140, dayStr);
+    printCentered(145, 85, dayStr);
+    printCentered(145, 110, dayOfWeek);
+}
+
+void WatchyAnalog::drawAlarm(){
+    display.setFont(&FONT);
+    display.setTextColor(FOREGROUND_COLOR);
+
+    if (alarm_timer >= 0){
+        printCentered(100, 40, "T-" + String(alarm_timer) + " min.");
+    } else{
+        printCentered(100, 40, "Watchy");
+    }
 }
 
 
-void WatchyAnalog::drawBattery(){   
+void WatchyAnalog::drawBattery(){
     display.setFont(&FONT);
     display.setTextColor(FOREGROUND_COLOR);
 
@@ -94,22 +108,22 @@ void WatchyAnalog::drawBattery(){
     bat = bat >= 100 ? 99 : bat;
     String batStr = String(bat);
     batStr = bat < 10 ? "0" + batStr : batStr;
-    printCentered(67, 140, batStr);
+    printCentered(60, 100, batStr + "%");
 }
 
 
-void WatchyAnalog::drawSteps(){   
+void WatchyAnalog::drawSteps(){
     display.setFont(&FONT);
     display.setTextColor(FOREGROUND_COLOR);
 
     bool rtc_alarm = wakeup_reason == ESP_SLEEP_WAKEUP_EXT0;
-    
+
     // Whenever we have a new hour, we can restart our step counting.
     // But only if its an rtc alarm - ignore button press etc.
     if(rtc_alarm && currentTime.Minute == 0 && currentTime.Hour == 0){
         sensor.resetStepCounter();
     }
-    
+
     uint32_t steps = sensor.getCounter();
-    printCentered(100, 40, String(steps));
+    printCentered(100, 150, String(steps));
 }
