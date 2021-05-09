@@ -93,7 +93,7 @@ void WatchyAnalog::drawAlarm(){
     display.setTextColor(FOREGROUND_COLOR);
 
     if (alarm_timer >= 0){
-        printCentered(100, 40, "T-" + String(alarm_timer) + " min.");
+        printCentered(100, 45, "T-" + String(alarm_timer) + " min.");
     } else{
         printCentered(100, 40, "Watchy");
     }
