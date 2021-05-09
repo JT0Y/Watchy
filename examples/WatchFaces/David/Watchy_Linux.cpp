@@ -63,9 +63,10 @@ void WatchyLinux::drawWatchFace(){
     display.setFont(&FONT_BOLD);
     display.setTextColor(FOREGROUND_COLOR);
     display.setCursor(0, 25);
-    display.println(" ubuntu:~$ now");
-
+    display.print(" ubuntu:~$ ");
     display.setFont(&FONT);
+    display.println("now");
+
     display.setCursor(0, 50);
     display.print(" [TIME] ");
     display.println(hourStr + ":" + minStr);
@@ -81,5 +82,5 @@ void WatchyLinux::drawWatchFace(){
     display.setFont(&FONT_BOLD);
     display.setCursor(0, 180);
     display.println(" ubuntu:~$ ");
-    display.fillRect(130, 162, 10, 20, FOREGROUND_COLOR);
+    display.fillRect(135, 164, 10, 20, FOREGROUND_COLOR);
 }
