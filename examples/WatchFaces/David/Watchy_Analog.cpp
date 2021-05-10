@@ -53,27 +53,22 @@ void WatchyAnalog::printCentered(uint16_t x, uint16_t y, String text){
 
 
 void WatchyAnalog::drawTime(){
-    int currentMinute = currentTime.Minute;
-    int minuteAngle = currentMinute * 6;
-    double radMinute = ((minuteAngle + 180) * 71) / 4068.0;
-    double mx1 = 100 - (sin(radMinute) * 85);
-    double my1 = 100 + (cos(radMinute) * 85);
-    for(int i=-2; i<3; i++){
-        display.drawLine(100+i, 100, (int)mx1+i, (int)my1, FOREGROUND_COLOR);
-        display.drawLine(100, 100+i, (int)mx1, (int)my1+i, FOREGROUND_COLOR);
-    }
+    int theHour = currentTime.Hour;
+    int theMinute = currentTime.Minute;
 
-    //hour pointer
-    int currentHour= currentTime.Hour;
-    double hourAngle = (currentHour * 30) + currentMinute * 0.5;
-    double radHour = ((hourAngle + 180) * 71) / 4068.0;
-    double hx1 = 100 - (sin(radHour) * 45);
-    double hy1 = 100 + (cos(radHour) * 45);
+    // minute hand
+    drawBitmapRotate(100,100, minute_hand_inv, theMinute * 6, GxEPD_WHITE);
+    drawBitmapRotate(100,100, minute_hand_inv, theMinute * 6, GREY);
+    drawBitmapRotate(100,100, minute_hand, theMinute * 6, GxEPD_BLACK);
 
-    for(int i=-2; i<3; i++){
-        display.drawLine(100+i, 100, (int)hx1+i, (int)hy1, FOREGROUND_COLOR);
-        display.drawLine(100, 100+i, (int)hx1, (int)hy1+i, FOREGROUND_COLOR);
-    }
+    // hour hand
+    int hourAngle = ((theHour%12)*60 + theMinute) * 360 / 720;
+    drawBitmapRotate(100,100, hour_hand_inv, hourAngle, GxEPD_WHITE);
+    drawBitmapRotate(100,100, hour_hand_inv, hourAngle, GREY);
+    drawBitmapRotate(100,100, hour_hand, hourAngle, GxEPD_BLACK);
+
+    display.fillCircle(100,100, 9, FOREGROUND_COLOR);
+    display.fillCircle(100,100, 6, BACKGROUND_COLOR);
 }
 
 

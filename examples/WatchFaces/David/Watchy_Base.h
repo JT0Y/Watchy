@@ -45,10 +45,11 @@ extern RTC_DATA_ATTR bool dark_mode;
 #define FOREGROUND_COLOR    (dark_mode ? GxEPD_WHITE : GxEPD_BLACK)
 #define BACKGROUND_COLOR    (dark_mode ? GxEPD_BLACK : GxEPD_WHITE)
 
-// Other settings 
+// Other settings
 //#define EXT_INT_MASK        MENU_BTN_MASK|BACK_BTN_MASK|UP_BTN_MASK|DOWN_BTN_MASK|ACC_INT_MASK
 #define EXT_INT_MASK        MENU_BTN_MASK|BACK_BTN_MASK|UP_BTN_MASK|DOWN_BTN_MASK
 
+#define GREY 0x7BEF
 
 class WatchyBase : public Watchy {
     public:
@@ -66,11 +67,15 @@ class WatchyBase : public Watchy {
         void drawHelperGrid();
         void drawMqqtData();
         bool watchFaceDisabled();
+        void drawPixel(int16_t x, int16_t y,uint16_t col);
+		void drawBitmapCol(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color1);
+		int getPixel(int16_t x, int16_t y, const uint8_t *bitmap);
+		void drawBitmapRotate(int xx, int yy, const uint8_t *bitmap, unsigned int fAngle, uint16_t color);
 
         esp_sleep_wakeup_cause_t wakeup_reason;
     private:
         void _minutesToHM(int16_t minutes, uint8_t &h, uint8_t &m);
-        void _rtcConfig();    
+        void _rtcConfig();
         void _bmaConfig();
         static uint16_t _readRegister(uint8_t address, uint8_t reg, uint8_t *data, uint16_t len);
         static uint16_t _writeRegister(uint8_t address, uint8_t reg, uint8_t *data, uint16_t len);

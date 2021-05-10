@@ -50,7 +50,7 @@ void WatchyBase::init(){
             // Handle alarm
             if(RTC.alarm(ALARM_1) && alarm_timer >= 0){
                 RTC.alarmInterrupt(ALARM_1, false); // disable interrupt
-                
+
                 vibrate(3, 500);
                 alarm_timer = -1;
 
@@ -59,7 +59,7 @@ void WatchyBase::init(){
 
             // Handle classical tick
             RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
-            
+
             // Only for visualization and to ensure that alarm is not triggered
             // again and a gain as the alarm flag is internally set every time...
             if(alarm_timer > 0){
@@ -83,7 +83,7 @@ void WatchyBase::init(){
                 sleep_mode = false;
                 RTC.alarmInterrupt(ALARM_2, true);
                 RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
-                
+
                 RTC.read(currentTime);
                 showWatchFace(false); //full update on wakeup from sleep mode
                 break;
@@ -91,7 +91,7 @@ void WatchyBase::init(){
 
             handleButtonPress();
             break;
-            
+
         default: //reset
             _rtcConfig();
             _bmaConfig();
@@ -129,7 +129,7 @@ void WatchyBase::handleButtonPress(){
             // Otherwise it will fire again and again.
         }
 
-        // To be defined in the watch face what we want exactly 
+        // To be defined in the watch face what we want exactly
         // to do. Therefore, no return;
     }
 
@@ -144,7 +144,7 @@ void WatchyBase::handleButtonPress(){
         if(alarm_timer < 60 * 24){
             alarm_timer += alarm_timer < 60 ? 5 : 10;
         }
-        
+
         // Sum minutes to current time
         uint8_t hours;
         uint8_t minutes;
@@ -153,11 +153,11 @@ void WatchyBase::handleButtonPress(){
         minutes += currentTime.Minute;
         hours += uint8_t(minutes / 60);
         hours += currentTime.Hour;
-        
+
         RTC.setAlarm(ALM1_MATCH_HOURS, seconds, minutes % 60, hours % 24, 0);
         RTC.alarmInterrupt(ALARM_1, true);
         vibrate();
-        
+
         showWatchFace(true);
         return;
     }
@@ -182,7 +182,7 @@ void WatchyBase::handleButtonPress(){
         //RTC.read(currentTime);
         //vibTime();
         //return;
-        
+
         vibrate();
         uint8_t result_code = openDoor();
         if(result_code <= 0){
@@ -191,7 +191,7 @@ void WatchyBase::handleButtonPress(){
             vibrate(1, 1000);
         }
     }
-    
+
     Watchy::handleButtonPress();
 }
 
@@ -211,7 +211,7 @@ void WatchyBase::_minutesToHM(int16_t minutes, uint8_t &h, uint8_t &m) {
 
 void WatchyBase::vibrate(uint8_t times, uint32_t delay_time){
     // Ensure that no false positive double tap is produced
-    sensor.enableFeature(BMA423_WAKEUP, false); 
+    sensor.enableFeature(BMA423_WAKEUP, false);
 
     pinMode(VIB_MOTOR_PIN, OUTPUT);
     for(uint8_t i=0; i<times; i++){
@@ -269,7 +269,7 @@ bool WatchyBase::connectWiFi(){
 
     WIFI_CONFIGURED = false;
     WiFi.begin(WIFI_SSID, WIFI_PASS);
-    
+
     int8_t retries = 20;
     while (!WIFI_CONFIGURED) {
         if(retries < 0){
@@ -281,7 +281,7 @@ bool WatchyBase::connectWiFi(){
         WIFI_CONFIGURED = (WiFi.status() == WL_CONNECTED);
     }
 
-    
+
     return WIFI_CONFIGURED;
 }
 
@@ -305,7 +305,7 @@ uint8_t WatchyBase::loadMqqtData(){
     PubSubClient mqtt_client(wifi_client);
     mqtt_client.setServer(MQTT_BROKER, 1883);
     mqtt_client.setCallback(callback);
-    
+
     mqtt_client.connect("WatchyDavid");
     if(!mqtt_client.connected()){
         disconnectWiFi();
@@ -322,11 +322,11 @@ uint8_t WatchyBase::loadMqqtData(){
     int8_t retries=25;
     while(!MQTT_RECEIVED_ALL_DATA){
         mqtt_client.loop();
-        
+
         if(retries % 5 == 0){
             vibrate();
         }
-        
+
         if(retries < 0){
             break;
         }
@@ -374,7 +374,7 @@ uint8_t WatchyBase::openDoor(){
     } else {
         result = 2;
     }
-    
+
     disconnectWiFi();
     return result;
 }
@@ -434,21 +434,92 @@ void WatchyBase::drawWatchFace(){
             display.setCursor(165, 195);
             display.println("[old]");
         }
-    }    
+    }
 }
 
 
 uint8_t WatchyBase::getBattery(){
     float voltage = getBatteryVoltage() + BATTERY_OFFSET;
-    
-    uint8_t percentage = 2808.3808 * pow(voltage, 4) 
-                        - 43560.9157 * pow(voltage, 3) 
-                        + 252848.5888 * pow(voltage, 2) 
-                        - 650767.4615 * voltage 
+
+    uint8_t percentage = 2808.3808 * pow(voltage, 4)
+                        - 43560.9157 * pow(voltage, 3)
+                        + 252848.5888 * pow(voltage, 2)
+                        - 650767.4615 * voltage
                         + 626532.5703;
     percentage = min((uint8_t) 100, percentage);
     percentage = max((uint8_t) 0, percentage);
     return percentage;
+}
+
+
+void WatchyBase::drawPixel(int16_t x, int16_t y,uint16_t col){
+  switch (col){
+    case GREY:
+      if(y&1){
+        if(x&1){
+          display.drawPixel(x, y, GxEPD_BLACK);
+        }else{
+          display.drawPixel(x, y, GxEPD_WHITE);
+        }
+      }else{
+        if(x&1){
+          display.drawPixel(x, y, GxEPD_WHITE);
+        }else{
+          display.drawPixel(x, y, GxEPD_BLACK);
+        }
+      }
+      break;
+    default:
+      display.drawPixel(x, y, col);
+      break;
+  }
+}
+
+void WatchyBase::drawBitmapCol(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color1){
+  int16_t i, j, byteWidth = (w + 7) / 8;
+  for(j=0; j<h; j++) {
+    for(i=0; i<w; i++ ) {
+      if((pgm_read_byte(bitmap + j * byteWidth + i / 8) & (128 >> (i & 7)))==0) {
+        drawPixel(x+i, y+j, color1);
+      }
+    }
+  }
+}
+
+
+int WatchyBase::getPixel(int16_t x, int16_t y, const uint8_t *bitmap){
+  int16_t imageWidth = pgm_read_byte(bitmap);
+  int16_t byteWidth = (imageWidth + 7) / 8;
+  return (pgm_read_byte(bitmap + 2 + y * byteWidth + x / 8) & (128 >> (x & 7)));
+}
+
+
+void WatchyBase::drawBitmapRotate(int xx, int yy, const uint8_t *bitmap, unsigned int fAngle, uint16_t color=GxEPD_BLACK){
+
+  int iWidth = pgm_read_byte(bitmap);
+  int iHeight = pgm_read_byte(bitmap + 1);
+  int hX = iWidth/2;
+  int hY = iHeight;
+  float angle = fAngle * PI / 180.0;
+
+  int startX = -hX;
+  int endX = startX + iWidth;
+  int startY = -hY;
+  int endY = startY + iHeight;
+
+  for (int x = 0; x < 200; x++) {
+    yield();
+    for (int y = 0; y < 200; y++) {
+      int ux = (x-xx) * cos(-angle) - (y-yy) * sin(-angle);
+      int uy = (x-xx) * sin(-angle) + (y-yy) * cos(-angle);
+
+      if(ux >= startX && ux <= endX && uy >= startY && uy <= endY){
+        if(!getPixel(ux + hX, uy + hY, bitmap)){
+          drawPixel(x, y, color);
+        }
+      }
+    }
+  }
 }
 
 
@@ -464,7 +535,7 @@ void WatchyBase::_rtcConfig(){
 
 
 void WatchyBase::_bmaConfig(){
- 
+
     if (sensor.begin(_readRegister, _writeRegister, delay) == false) {
         //fail to init BMA
         return;
@@ -556,7 +627,7 @@ void WatchyBase::_bmaConfig(){
     //sensor.enableStepCountInterrupt();
     //sensor.enableTiltInterrupt();
     // It corresponds to isDoubleClick interrupt
-    //sensor.enableWakeupInterrupt();  
+    //sensor.enableWakeupInterrupt();
 }
 
 
