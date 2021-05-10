@@ -56,16 +56,16 @@ void WatchyAnalog::drawTime(){
     int theHour = currentTime.Hour;
     int theMinute = currentTime.Minute;
 
-    // minute hand
-    drawBitmapRotate(100,100, minute_hand_inv, theMinute * 6, GxEPD_WHITE);
-    drawBitmapRotate(100,100, minute_hand_inv, theMinute * 6, GREY);
-    drawBitmapRotate(100,100, minute_hand, theMinute * 6, GxEPD_BLACK);
-
     // hour hand
     int hourAngle = ((theHour%12)*60 + theMinute) * 360 / 720;
     drawBitmapRotate(100,100, hour_hand_inv, hourAngle, GxEPD_WHITE);
     drawBitmapRotate(100,100, hour_hand_inv, hourAngle, GREY);
     drawBitmapRotate(100,100, hour_hand, hourAngle, GxEPD_BLACK);
+
+    // minute hand
+    drawBitmapRotate(100,100, minute_hand_inv, theMinute * 6, GxEPD_WHITE);
+    drawBitmapRotate(100,100, minute_hand_inv, theMinute * 6, GREY);
+    drawBitmapRotate(100,100, minute_hand, theMinute * 6, GxEPD_BLACK);
 
     display.fillCircle(100,100, 13, BACKGROUND_COLOR);
     display.fillCircle(100,100, 9, FOREGROUND_COLOR);
