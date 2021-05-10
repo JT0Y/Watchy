@@ -67,8 +67,9 @@ void WatchyAnalog::drawTime(){
     drawBitmapRotate(100,100, hour_hand_inv, hourAngle, GREY);
     drawBitmapRotate(100,100, hour_hand, hourAngle, GxEPD_BLACK);
 
+    display.fillCircle(100,100, 13, BACKGROUND_COLOR);
     display.fillCircle(100,100, 9, FOREGROUND_COLOR);
-    display.fillCircle(100,100, 6, BACKGROUND_COLOR);
+    display.fillCircle(100,100, 5, BACKGROUND_COLOR);
 }
 
 
