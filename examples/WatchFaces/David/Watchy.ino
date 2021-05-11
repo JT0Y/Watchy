@@ -7,8 +7,8 @@
 // #include "Watchy_BTTF.h"
 // WatchyBTTF watchy;
 
-#include "Watchy_Analog.h"
-WatchyAnalog watchy;
+// #include "Watchy_Analog.h"
+// WatchyAnalog watchy;
 
 //#include "Watchy_BCD.h"
 //WatchyBCD watchy;
@@ -16,8 +16,8 @@ WatchyAnalog watchy;
 // #include "Watchy_LCARS.h"
 // WatchyLCARS watchy;
 
-// #include "Watchy_Linux.h"
-// WatchyLinux watchy;
+#include "Watchy_Linux.h"
+WatchyLinux watchy;
 
 void setup(){
   watchy.init();

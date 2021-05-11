@@ -50,6 +50,7 @@ extern RTC_DATA_ATTR bool dark_mode;
 #define EXT_INT_MASK        MENU_BTN_MASK|BACK_BTN_MASK|UP_BTN_MASK|DOWN_BTN_MASK
 
 #define GREY 0x7BEF
+#define DARK_GREY 0x7BEE
 
 class WatchyBase : public Watchy {
     public:

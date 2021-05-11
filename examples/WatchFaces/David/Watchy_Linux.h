@@ -4,6 +4,7 @@
 #include "Watchy_Base.h"
 #include "icons.h"
 #include "fonts.h"
+#include "Images/dont_panic.h"
 
 class WatchyLinux : public WatchyBase {
 

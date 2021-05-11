@@ -455,26 +455,22 @@ uint8_t WatchyBase::getBattery(){
 
 
 void WatchyBase::drawPixel(int16_t x, int16_t y,uint16_t col){
-  switch (col){
-    case GREY:
-      if(y&1){
-        if(x&1){
-          display.drawPixel(x, y, GxEPD_BLACK);
-        }else{
-          display.drawPixel(x, y, GxEPD_WHITE);
-        }
-      }else{
-        if(x&1){
-          display.drawPixel(x, y, GxEPD_WHITE);
-        }else{
-          display.drawPixel(x, y, GxEPD_BLACK);
-        }
-      }
-      break;
-    default:
-      display.drawPixel(x, y, col);
-      break;
-  }
+    uint16_t real_color;
+    switch (col){
+        case GREY:
+            real_color = (x+y)%2==0 ? GxEPD_WHITE : GxEPD_BLACK;
+            break;
+
+        case DARK_GREY:
+            real_color = (x+y)%4==0 ? GxEPD_WHITE : GxEPD_BLACK;
+            break;
+
+        default:
+            real_color = col;
+            break;
+    }
+
+    display.drawPixel(x, y, real_color);
 }
 
 void WatchyBase::drawBitmapCol(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color1){

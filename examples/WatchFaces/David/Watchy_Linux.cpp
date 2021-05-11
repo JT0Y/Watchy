@@ -29,6 +29,8 @@ void WatchyLinux::drawWatchFace(){
         return;
     }
 
+    drawBitmapRotate(100, 200, dont_panic, 0, DARK_GREY);
+
     bool rtc_alarm = wakeup_reason == ESP_SLEEP_WAKEUP_EXT0;
 
     // Date time
@@ -62,12 +64,10 @@ void WatchyLinux::drawWatchFace(){
     // Draw background
     display.setFont(&FONT_BOLD);
     display.setTextColor(FOREGROUND_COLOR);
-    display.setCursor(0, 25);
-    display.print(" ubuntu:~$ ");
-    display.setFont(&FONT);
-    display.println("now");
+    display.setCursor(0, 30);
+    display.println(" deepthought:$");
 
-    display.setCursor(0, 50);
+    display.setFont(&FONT);
     display.print(" [TIME] ");
     display.println(hourStr + ":" + minStr);
     display.print(" [DATE] ");
@@ -79,8 +79,8 @@ void WatchyLinux::drawWatchFace(){
     display.print(" [STEP] ");
     display.println(steps);
 
-    display.setFont(&FONT_BOLD);
     display.setCursor(0, 180);
-    display.println(" ubuntu:~$ ");
-    display.fillRect(135, 164, 10, 20, FOREGROUND_COLOR);
+    display.setFont(&FONT_BOLD);
+    display.println("--==|| 42 ||==--");
+    // display.fillRect(135, 164, 10, 20, FOREGROUND_COLOR);
 }
