@@ -35,8 +35,8 @@ void WatchyAnalog::drawWatchFace(){
     drawDate();
     drawSteps();
     drawBattery();
-    drawTime();
     drawAlarm();
+    drawTime();
 
     //drawHelperGrid();
 }
