@@ -101,6 +101,8 @@ void WatchyBase::init(){
 
     // Sometimes BMA crashes - simply try to reinitialize bma...
     if(sensor.getErrorCode() != 0){
+        sensor.shutDown();
+        sensor.wakeUp();
         sensor.softReset();
         _bmaConfig();
     }

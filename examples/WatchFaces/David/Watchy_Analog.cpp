@@ -80,8 +80,8 @@ void WatchyAnalog::drawDate(){
     String dayOfWeek = dayShortStr(currentTime.Wday);
     String dayStr = String(currentTime.Day);
     dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
-    printCentered(145, 85, dayStr);
-    printCentered(145, 110, dayOfWeek);
+    printCentered(145, 85, dayOfWeek);
+    printCentered(145, 110, dayStr);
 }
 
 void WatchyAnalog::drawAlarm(){
