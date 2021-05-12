@@ -465,6 +465,10 @@ void WatchyBase::drawPixel(int16_t x, int16_t y,uint16_t col){
             real_color = (x+y)%4==0 ? GxEPD_WHITE : GxEPD_BLACK;
             break;
 
+        case LIGHT_GREY:
+            real_color = (x+y)%4==0 ? GxEPD_BLACK : GxEPD_WHITE;
+            break;
+
         default:
             real_color = col;
             break;

@@ -1,11 +1,8 @@
 #include "Watchy_Analog.h"
 
 
-// For more fonts look here:
-// https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
-//#define FONT_LARGE       Bohemian_Typewriter22pt7b
-//#define FONT_MEDUM       Bohemian_Typewriter18pt7b
-#define FONT            WallingtonRegular12pt7b
+#define FONT                WallingtonRegular12pt7b
+#define WHITE_TEXT_SIZE     2
 
 WatchyAnalog::WatchyAnalog(){
 
@@ -31,7 +28,9 @@ void WatchyAnalog::drawWatchFace(){
         return;
     }
 
-    display.drawBitmap(0, 0, analog, 200, 200, FOREGROUND_COLOR);
+    drawBitmapRotate(100, 200, analog_bg, 0, LIGHT_GREY);
+    drawBitmapRotate(100, 200, analog, 0, GxEPD_BLACK);
+
     drawDate();
     drawSteps();
     drawBattery();
@@ -56,17 +55,18 @@ void WatchyAnalog::drawTime(){
     int theHour = currentTime.Hour;
     int theMinute = currentTime.Minute;
 
-    // minute hand
-    drawBitmapRotate(100,100, minute_hand_inv, theMinute * 6, GxEPD_WHITE);
-    drawBitmapRotate(100,100, minute_hand_inv, theMinute * 6, GREY);
-    drawBitmapRotate(100,100, minute_hand, theMinute * 6, GxEPD_BLACK);
-
-    // hour hand
+    // Hour hand
     int hourAngle = ((theHour%12)*60 + theMinute) * 360 / 720;
     drawBitmapRotate(100,100, hour_hand_inv, hourAngle, GxEPD_WHITE);
     drawBitmapRotate(100,100, hour_hand_inv, hourAngle, GREY);
     drawBitmapRotate(100,100, hour_hand, hourAngle, GxEPD_BLACK);
 
+    // Minute hand
+    drawBitmapRotate(100,100, minute_hand_inv, theMinute * 6, GxEPD_WHITE);
+    drawBitmapRotate(100,100, minute_hand_inv, theMinute * 6, GREY);
+    drawBitmapRotate(100,100, minute_hand, theMinute * 6, GxEPD_BLACK);
+
+    // Middle circle
     display.fillCircle(100,100, 13, BACKGROUND_COLOR);
     display.fillCircle(100,100, 9, FOREGROUND_COLOR);
     display.fillCircle(100,100, 5, BACKGROUND_COLOR);
@@ -77,11 +77,22 @@ void WatchyAnalog::drawDate(){
     display.setFont(&FONT);
     display.setTextColor(FOREGROUND_COLOR);
 
-    String dayOfWeek = dayShortStr(currentTime.Wday);
+    // Day
     String dayStr = String(currentTime.Day);
     dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
-    printCentered(145, 85, dayOfWeek);
-    printCentered(145, 110, dayStr);
+
+    display.setTextColor(BACKGROUND_COLOR);
+    for(int i=-WHITE_TEXT_SIZE;i<WHITE_TEXT_SIZE+1;i++){
+        for(int j=-WHITE_TEXT_SIZE;j<WHITE_TEXT_SIZE+1;j++){
+            printCentered(145+i, 112+j, String(dayStr));
+        }
+    }
+    display.setTextColor(FOREGROUND_COLOR);
+    printCentered(145, 112, dayStr);
+
+    // Week day
+    String dayOfWeek = dayShortStr(currentTime.Wday);
+    printCentered(145, 84, dayOfWeek);
 }
 
 void WatchyAnalog::drawAlarm(){
@@ -104,6 +115,15 @@ void WatchyAnalog::drawBattery(){
     bat = bat >= 100 ? 99 : bat;
     String batStr = String(bat);
     batStr = bat < 10 ? "0" + batStr : batStr;
+
+    display.setTextColor(BACKGROUND_COLOR);
+    for(int i=-WHITE_TEXT_SIZE;i<WHITE_TEXT_SIZE+1;i++){
+        for(int j=-WHITE_TEXT_SIZE;j<WHITE_TEXT_SIZE+1;j++){
+            printCentered(60+i, 100+j, String(batStr) + "%");
+        }
+    }
+    display.setTextColor(FOREGROUND_COLOR);
+
     printCentered(60, 100, batStr + "%");
 }
 
@@ -121,5 +141,14 @@ void WatchyAnalog::drawSteps(){
     }
 
     uint32_t steps = sensor.getCounter();
+
+    display.setTextColor(BACKGROUND_COLOR);
+    for(int i=-WHITE_TEXT_SIZE;i<WHITE_TEXT_SIZE+1;i++){
+        for(int j=-WHITE_TEXT_SIZE;j<WHITE_TEXT_SIZE+1;j++){
+            printCentered(100+i, 150+j, String(steps));
+        }
+    }
+    display.setTextColor(FOREGROUND_COLOR);
+
     printCentered(100, 150, String(steps));
 }

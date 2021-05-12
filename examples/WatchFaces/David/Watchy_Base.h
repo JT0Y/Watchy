@@ -51,6 +51,7 @@ extern RTC_DATA_ATTR bool dark_mode;
 
 #define GREY 0x7BEF
 #define DARK_GREY 0x7BEE
+#define LIGHT_GREY 0x7BED
 
 class WatchyBase : public Watchy {
     public:
