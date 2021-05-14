@@ -80,9 +80,10 @@ void WatchyDot::drawTime(){
 
     int x = 100 + (int)(cos(theta) * s / M(theta));
     int y = 100 + (int)(sin(theta) * s / M(theta));
+    printCentered(x, y, "h");
 
-    display.fillCircle(x, y, 14, FOREGROUND_COLOR);
-    display.fillCircle(x, y, 12, BACKGROUND_COLOR);
+    // display.fillCircle(x, y, 14, FOREGROUND_COLOR);
+    // display.fillCircle(x, y, 12, BACKGROUND_COLOR);
 
     // Minute hand
     theta = theMinute * 360 / 60;
@@ -90,8 +91,9 @@ void WatchyDot::drawTime(){
     theta = theta * PI / 180.0;
     x = 100 + (int)(cos(theta) * s / M(theta));
     y = 100 + (int)(sin(theta) * s / M(theta));
-    display.fillCircle(x, y, 12, BACKGROUND_COLOR);
-    display.fillCircle(x, y, 9, FOREGROUND_COLOR);
+    printCentered(x, y, "m");
+    // display.fillCircle(x, y, 12, BACKGROUND_COLOR);
+    // display.fillCircle(x, y, 9, FOREGROUND_COLOR);
 
     // Alarm timer
     if(alarm_timer > 0){
@@ -115,7 +117,7 @@ void WatchyDot::drawDate(){
     dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
     String date = dayShortStr(currentTime.Wday);
     date += "  " + String(dayStr);
-    printCentered(100, 65, date);
+    printCentered(100, 63, date);
 }
 
 
@@ -145,5 +147,5 @@ void WatchyDot::drawSteps(){
     uint32_t steps = sensor.getCounter();
     String stepStr = String(steps);
 
-    printCentered(100, 145, stepStr);
+    printCentered(100, 143, stepStr);
 }
