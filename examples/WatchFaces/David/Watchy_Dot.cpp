@@ -1,7 +1,7 @@
 #include "Watchy_Dot.h"
 
 
-#define FONT                WallingtonRegular12pt7b
+#define FONT                Himalaya_40020pt7b
 #define WHITE_TEXT_SIZE     3
 
 WatchyDot::WatchyDot(){
@@ -28,12 +28,9 @@ void WatchyDot::drawWatchFace(){
         return;
     }
 
-    drawBitmapRotate(100, 200, analog_bg, 0, GREY);
-
+    drawBattery();
     drawDate();
     drawSteps();
-    drawBattery();
-    drawAlarm();
     drawTime();
 }
 
@@ -41,9 +38,26 @@ void WatchyDot::drawWatchFace(){
 void WatchyDot::printCentered(uint16_t x, uint16_t y, String text){
     int16_t  x1, y1;
     uint16_t w, h;
-
     display.getTextBounds(text, 40, 100, &x1, &y1, &w, &h);
+
+    display.setTextColor(BACKGROUND_COLOR);
+    for(int i=-WHITE_TEXT_SIZE;i<WHITE_TEXT_SIZE+1;i++){
+        for(int j=-WHITE_TEXT_SIZE;j<WHITE_TEXT_SIZE+1;j++){
+            display.setCursor(x-w/2+i, y+h/2+j);
+            display.println(text);
+        }
+    }
+
+    display.setTextColor(FOREGROUND_COLOR);
     display.setCursor(x-w/2, y+h/2);
+    display.println(text);
+    display.setCursor(x-w/2-1, y+h/2);
+    display.println(text);
+    display.setCursor(x-w/2+1, y+h/2);
+    display.println(text);
+    display.setCursor(x-w/2, y+h/2+1);
+    display.println(text);
+    display.setCursor(x-w/2, y+h/2-1);
     display.println(text);
 }
 
@@ -79,6 +93,17 @@ void WatchyDot::drawTime(){
     y = 100 + (int)(sin(theta) * s / M(theta));
     display.fillCircle(x, y, 12, BACKGROUND_COLOR);
     display.fillCircle(x, y, 10, FOREGROUND_COLOR);
+
+    // Alarm timer
+    if(alarm_timer > 0){
+        s = 75;
+        theta = ((theMinute + alarm_timer) % 60) * 360 / 60;
+        theta = (int)(theta-90) % 360;
+        theta = theta * PI / 180.0;
+        x = 100 + (int)(cos(theta) * s / M(theta));
+        y = 100 + (int)(sin(theta) * s / M(theta));
+        printCentered(x, y, String(alarm_timer));
+    }
 }
 
 
@@ -91,39 +116,18 @@ void WatchyDot::drawDate(){
     dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
     String date = dayShortStr(currentTime.Wday);
     date += "  " + String(dayStr);
-    printCentered(100, 80, date);
-}
-
-void WatchyDot::drawAlarm(){
-    display.setFont(&FONT);
-    display.setTextColor(FOREGROUND_COLOR);
-
-    if (alarm_timer >= 0){
-        printCentered(100, 45, "T-" + String(alarm_timer) + " min.");
-    } else{
-        printCentered(100, 40, "Watchy");
-    }
+    printCentered(100, 65, date);
 }
 
 
 void WatchyDot::drawBattery(){
-    display.setFont(&FONT);
-    display.setTextColor(FOREGROUND_COLOR);
-
     int8_t bat = getBattery();
     bat = bat >= 100 ? 99 : bat;
-    String batStr = String(bat);
-    batStr = bat < 10 ? "0" + batStr : batStr;
-
-    display.setTextColor(BACKGROUND_COLOR);
-    batStr = batStr + "%";
-    for(int i=-WHITE_TEXT_SIZE;i<WHITE_TEXT_SIZE+1;i++){
-        for(int j=-WHITE_TEXT_SIZE;j<WHITE_TEXT_SIZE+1;j++){
-            printCentered(100+i, 115+j, batStr);
+    for(int x=0; x < 200; x++){
+        for(int y=200; y > 200-bat*2; y--){
+            drawPixel(x, y, GREY);
         }
     }
-    display.setTextColor(FOREGROUND_COLOR);
-    printCentered(100, 115, batStr);
 }
 
 
@@ -141,14 +145,6 @@ void WatchyDot::drawSteps(){
 
     uint32_t steps = sensor.getCounter();
     String stepStr = String(steps);
-
-    display.setTextColor(BACKGROUND_COLOR);
-    for(int i=-WHITE_TEXT_SIZE;i<WHITE_TEXT_SIZE+1;i++){
-        for(int j=-WHITE_TEXT_SIZE;j<WHITE_TEXT_SIZE+1;j++){
-            printCentered(100+i, 145+j, stepStr);
-        }
-    }
-    display.setTextColor(FOREGROUND_COLOR);
 
     printCentered(100, 145, stepStr);
 }

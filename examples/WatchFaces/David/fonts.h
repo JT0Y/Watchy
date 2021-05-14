@@ -22,5 +22,6 @@
 #include "Fonts/UbuntuMono_R12pt7b.h"
 #include "Fonts/UbuntuMono_B12pt7b.h"
 #include "Fonts/WallingtonRegular12pt7b.h"
+#include "Fonts/Himalaya_40020pt7b.h"
 
 #endif

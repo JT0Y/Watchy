@@ -16,7 +16,6 @@ class WatchyDot : public WatchyBase {
         void drawSteps();
         void drawBattery();
         void handleButtonPress();
-        void drawAlarm();
 
     private:
         void printCentered(uint16_t x, uint16_t y, String text);
