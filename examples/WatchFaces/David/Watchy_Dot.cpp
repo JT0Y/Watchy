@@ -72,7 +72,6 @@ void WatchyDot::drawTime(){
     int theHour = currentTime.Hour;
     int theMinute = currentTime.Minute;
 
-
     // Hour hand
     int s = 80;
     float theta = ((theHour%12)*60 + theMinute) * 360 / 720;
@@ -92,7 +91,7 @@ void WatchyDot::drawTime(){
     x = 100 + (int)(cos(theta) * s / M(theta));
     y = 100 + (int)(sin(theta) * s / M(theta));
     display.fillCircle(x, y, 12, BACKGROUND_COLOR);
-    display.fillCircle(x, y, 10, FOREGROUND_COLOR);
+    display.fillCircle(x, y, 9, FOREGROUND_COLOR);
 
     // Alarm timer
     if(alarm_timer > 0){
@@ -125,7 +124,7 @@ void WatchyDot::drawBattery(){
     bat = bat >= 100 ? 99 : bat;
     for(int x=0; x < 200; x++){
         for(int y=200; y > 200-bat*2; y--){
-            drawPixel(x, y, GREY);
+            drawPixel(x, y, DARK_GREY);
         }
     }
 }
