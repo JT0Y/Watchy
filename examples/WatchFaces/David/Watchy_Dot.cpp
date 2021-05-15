@@ -2,7 +2,6 @@
 
 
 #define FONT                Himalaya_40020pt7b
-#define WHITE_TEXT_SIZE     3
 
 WatchyDot::WatchyDot(){
 
@@ -28,37 +27,40 @@ void WatchyDot::drawWatchFace(){
         return;
     }
 
-    drawBattery();
+    // Whenever we have a new hour, we can restart our step counting.
+    // But only if its an rtc alarm - ignore button press etc.
+    bool rtc_alarm = wakeup_reason == ESP_SLEEP_WAKEUP_EXT0;
+    if(rtc_alarm && currentTime.Minute == 0 && currentTime.Hour == 0){
+        sensor.resetStepCounter();
+    }
+
+    drawTriangles();
     drawDate();
-    drawSteps();
+    //drawSteps();
     drawTime();
 }
 
 
-void WatchyDot::printCentered(uint16_t x, uint16_t y, String text){
+void WatchyDot::printCentered(uint16_t x, uint16_t y, String text, uint16_t size=1){
     int16_t  x1, y1;
     uint16_t w, h;
     display.getTextBounds(text, 40, 100, &x1, &y1, &w, &h);
 
     display.setTextColor(BACKGROUND_COLOR);
-    for(int i=-WHITE_TEXT_SIZE;i<WHITE_TEXT_SIZE+1;i++){
-        for(int j=-WHITE_TEXT_SIZE;j<WHITE_TEXT_SIZE+1;j++){
+    for(int i=-size-3;i<size+4;i++){
+        for(int j=-size-3;j<size+4;j++){
             display.setCursor(x-w/2+i, y+h/2+j);
             display.println(text);
         }
     }
 
     display.setTextColor(FOREGROUND_COLOR);
-    display.setCursor(x-w/2, y+h/2);
-    display.println(text);
-    display.setCursor(x-w/2-1, y+h/2);
-    display.println(text);
-    display.setCursor(x-w/2+1, y+h/2);
-    display.println(text);
-    display.setCursor(x-w/2, y+h/2+1);
-    display.println(text);
-    display.setCursor(x-w/2, y+h/2-1);
-    display.println(text);
+    for(int i=-size;i<size+1;i++){
+        for(int j=-size;j<size+1;j++){
+            display.setCursor(x-w/2+i, y+h/2+j);
+            display.println(text);
+        }
+    }
 }
 
 
@@ -91,7 +93,7 @@ void WatchyDot::drawTime(){
     theta = theta * PI / 180.0;
     x = 100 + (int)(cos(theta) * s / M(theta));
     y = 100 + (int)(sin(theta) * s / M(theta));
-    printCentered(x, y, "m");
+    printCentered(x, y+7, "m");
     // display.fillCircle(x, y, 12, BACKGROUND_COLOR);
     // display.fillCircle(x, y, 9, FOREGROUND_COLOR);
 
@@ -117,16 +119,30 @@ void WatchyDot::drawDate(){
     dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
     String date = dayShortStr(currentTime.Wday);
     date += "  " + String(dayStr);
-    printCentered(100, 63, date);
+    printCentered(100, 80, date, 2);
 }
 
 
-void WatchyDot::drawBattery(){
+void WatchyDot::drawTriangles(){
+    int steps = sensor.getCounter();
+    steps = min(steps, 10000);
+    steps = 200.0 * (steps / 10000.0);
+
     int8_t bat = getBattery();
     bat = bat >= 100 ? 99 : bat;
-    for(int x=0; x < 200; x++){
-        for(int y=200; y > 200-bat*2; y--){
-            drawPixel(x, y, DARK_GREY);
+    bat *= 2;
+    for(int y=0; y < 200; y++){
+        for(int x=0; x<200; x++){
+            uint16_t color;
+            bool upper_triangle = x > y;
+
+            if(upper_triangle){
+                color = y <= 200-bat ? LIGHT_GREY : DARK_GREY;
+            } else {
+                color = y >= 200-steps ? GxEPD_BLACK : GREY;
+            }
+
+            drawPixel(x, y, color);
         }
     }
 }
@@ -135,14 +151,6 @@ void WatchyDot::drawBattery(){
 void WatchyDot::drawSteps(){
     display.setFont(&FONT);
     display.setTextColor(FOREGROUND_COLOR);
-
-    bool rtc_alarm = wakeup_reason == ESP_SLEEP_WAKEUP_EXT0;
-
-    // Whenever we have a new hour, we can restart our step counting.
-    // But only if its an rtc alarm - ignore button press etc.
-    if(rtc_alarm && currentTime.Minute == 0 && currentTime.Hour == 0){
-        sensor.resetStepCounter();
-    }
 
     uint32_t steps = sensor.getCounter();
     String stepStr = String(steps);
