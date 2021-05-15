@@ -36,7 +36,7 @@ void WatchyDot::drawWatchFace(){
 
     drawTriangles();
     drawDate();
-    //drawSteps();
+    drawAlarm();
     drawTime();
 }
 
@@ -93,13 +93,9 @@ void WatchyDot::drawTime(){
     x = 100 + (int)(cos(theta) * s / M(theta));
     y = 100 + (int)(sin(theta) * s / M(theta));
 
-    if(alarm_timer >= 0){
-        printCentered(x, y, String(alarm_timer));
-    }else {
-        //printCentered(x, y+7, "m");
-        display.fillCircle(x, y, 12, BACKGROUND_COLOR);
-        display.fillCircle(x, y, 8, FOREGROUND_COLOR);
-    }
+    //printCentered(x, y+7, "m");
+    display.fillCircle(x, y, 12, BACKGROUND_COLOR);
+    display.fillCircle(x, y, 8, FOREGROUND_COLOR);
 }
 
 
@@ -150,12 +146,12 @@ void WatchyDot::drawTriangles(){
 }
 
 
-void WatchyDot::drawSteps(){
+void WatchyDot::drawAlarm(){
     display.setFont(&FONT);
     display.setTextColor(FOREGROUND_COLOR);
+    if(alarm_timer < 0){
+        return;
+    }
 
-    uint32_t steps = sensor.getCounter();
-    String stepStr = String(steps);
-
-    printCentered(100, 143, stepStr);
+    printCentered(100, 153, String(alarm_timer) + " min.");
 }

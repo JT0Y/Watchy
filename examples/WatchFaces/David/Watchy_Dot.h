@@ -13,7 +13,7 @@ class WatchyDot : public WatchyBase {
         void drawWatchFace();
         void drawTime();
         void drawDate();
-        void drawSteps();
+        void drawAlarm();
         void drawTriangles();
         void handleButtonPress();
 
