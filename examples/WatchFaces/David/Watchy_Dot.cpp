@@ -82,10 +82,9 @@ void WatchyDot::drawTime(){
 
     int x = 100 + (int)(cos(theta) * s / M(theta));
     int y = 100 + (int)(sin(theta) * s / M(theta));
-    printCentered(x, y, "h");
-
-    // display.fillCircle(x, y, 14, FOREGROUND_COLOR);
-    // display.fillCircle(x, y, 12, BACKGROUND_COLOR);
+    //printCentered(x, y, "h");
+    display.fillCircle(x, y, 15, FOREGROUND_COLOR);
+    display.fillCircle(x, y, 12, BACKGROUND_COLOR);
 
     // Minute hand
     theta = theMinute * 360 / 60;
@@ -97,22 +96,10 @@ void WatchyDot::drawTime(){
     if(alarm_timer >= 0){
         printCentered(x, y, String(alarm_timer));
     }else {
-        printCentered(x, y+7, "m");
+        //printCentered(x, y+7, "m");
+        display.fillCircle(x, y, 12, BACKGROUND_COLOR);
+        display.fillCircle(x, y, 8, FOREGROUND_COLOR);
     }
-
-    // display.fillCircle(x, y, 12, BACKGROUND_COLOR);
-    // display.fillCircle(x, y, 9, FOREGROUND_COLOR);
-
-    // Alarm timer
-    // if(alarm_timer > 0){
-    //     s = 75;
-    //     theta = ((theMinute + alarm_timer) % 60) * 360 / 60;
-    //     theta = (int)(theta-90) % 360;
-    //     theta = theta * PI / 180.0;
-    //     x = 100 + (int)(cos(theta) * s / M(theta));
-    //     y = 100 + (int)(sin(theta) * s / M(theta));
-    //     printCentered(x, y, String(alarm_timer));
-    // }
 }
 
 
