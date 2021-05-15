@@ -455,6 +455,10 @@ uint8_t WatchyBase::getBattery(){
 
 
 void WatchyBase::drawPixel(int16_t x, int16_t y,uint16_t col){
+    if(x > 200 || y > 200 || x < 0 || y < 0){
+        return;
+    }
+
     uint16_t real_color;
     switch (col){
         case GREY:

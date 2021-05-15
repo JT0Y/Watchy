@@ -93,20 +93,26 @@ void WatchyDot::drawTime(){
     theta = theta * PI / 180.0;
     x = 100 + (int)(cos(theta) * s / M(theta));
     y = 100 + (int)(sin(theta) * s / M(theta));
-    printCentered(x, y+7, "m");
+
+    if(alarm_timer >= 0){
+        printCentered(x, y, String(alarm_timer));
+    }else {
+        printCentered(x, y+7, "m");
+    }
+
     // display.fillCircle(x, y, 12, BACKGROUND_COLOR);
     // display.fillCircle(x, y, 9, FOREGROUND_COLOR);
 
     // Alarm timer
-    if(alarm_timer > 0){
-        s = 75;
-        theta = ((theMinute + alarm_timer) % 60) * 360 / 60;
-        theta = (int)(theta-90) % 360;
-        theta = theta * PI / 180.0;
-        x = 100 + (int)(cos(theta) * s / M(theta));
-        y = 100 + (int)(sin(theta) * s / M(theta));
-        printCentered(x, y, String(alarm_timer));
-    }
+    // if(alarm_timer > 0){
+    //     s = 75;
+    //     theta = ((theMinute + alarm_timer) % 60) * 360 / 60;
+    //     theta = (int)(theta-90) % 360;
+    //     theta = theta * PI / 180.0;
+    //     x = 100 + (int)(cos(theta) * s / M(theta));
+    //     y = 100 + (int)(sin(theta) * s / M(theta));
+    //     printCentered(x, y, String(alarm_timer));
+    // }
 }
 
 
@@ -128,23 +134,32 @@ void WatchyDot::drawTriangles(){
     steps = min(steps, 10000);
     steps = 200.0 * (steps / 10000.0);
 
-    int8_t bat = getBattery();
-    bat = bat >= 100 ? 99 : bat;
+    int bat = getBattery();
+    bat = min(bat, 100);
     bat *= 2;
+
+    // Draw upper and lower triangle
     for(int y=0; y < 200; y++){
-        for(int x=0; x<200; x++){
+        for(int x=0; x < 200; x++){
             uint16_t color;
             bool upper_triangle = x > y;
 
             if(upper_triangle){
-                color = y <= 200-bat ? LIGHT_GREY : DARK_GREY;
+                color = y >= 200-bat ? DARK_GREY : LIGHT_GREY;
             } else {
                 color = y >= 200-steps ? GxEPD_BLACK : GREY;
+            }
+
+            // Split both triangles
+            if(abs(x-y) < 2){
+                color = GxEPD_WHITE;
             }
 
             drawPixel(x, y, color);
         }
     }
+
+
 }
 
 
