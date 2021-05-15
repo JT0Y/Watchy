@@ -83,7 +83,7 @@ void WatchyDot::drawTime(){
     int x = 100 + (int)(cos(theta) * s / M(theta));
     int y = 100 + (int)(sin(theta) * s / M(theta));
     //printCentered(x, y, "h");
-    display.fillCircle(x, y, 15, FOREGROUND_COLOR);
+    display.fillCircle(x, y, 16, FOREGROUND_COLOR);
     display.fillCircle(x, y, 12, BACKGROUND_COLOR);
 
     // Minute hand
@@ -128,9 +128,17 @@ void WatchyDot::drawTriangles(){
             bool upper_triangle = x > y;
 
             if(upper_triangle){
-                color = y >= 200-bat ? DARK_GREY : LIGHT_GREY;
+                if(y >= 200-bat-1 && y < 200-bat+1){
+                    color = GxEPD_WHITE;
+                } else {
+                    color = y >= 200-bat ? DARK_GREY : LIGHT_GREY;
+                }
             } else {
-                color = y >= 200-steps ? GxEPD_BLACK : GREY;
+                if(y >= 200-steps-1 && y < 200-steps+1){
+                    color = GxEPD_WHITE;
+                } else {
+                    color = y >= 200-steps ? GxEPD_BLACK : GREY;
+                }
             }
 
             // Split both triangles
@@ -141,8 +149,6 @@ void WatchyDot::drawTriangles(){
             drawPixel(x, y, color);
         }
     }
-
-
 }
 
 
