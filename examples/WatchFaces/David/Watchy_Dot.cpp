@@ -114,7 +114,7 @@ void WatchyDot::drawDate(){
 
 void WatchyDot::drawTriangles(){
     int steps = sensor.getCounter();
-    steps = min(steps, 10000);
+    steps = steps % 10000;
     steps = 200.0 * (steps / 10000.0);
 
     int bat = getBattery();
