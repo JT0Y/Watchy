@@ -269,20 +269,17 @@ void callback(char* topic, byte* payload, unsigned int length){
 
 bool WatchyBase::connectWiFi(){
     int overall_retries = 3;
-
     while(overall_retries > 0){
+
         WIFI_CONFIGURED = false;
         WiFi.begin(WIFI_SSID, WIFI_PASS);
+        delay(250);
 
         int8_t retries = 15;
-        while (!WIFI_CONFIGURED) {
-            if(retries < 0){
-                break;
-            }
-            retries--;
-
+        while (!WIFI_CONFIGURED && retries > 0) {
             delay(100);
             WIFI_CONFIGURED = (WiFi.status() == WL_CONNECTED);
+            retries--;
         }
 
         if(WIFI_CONFIGURED){
