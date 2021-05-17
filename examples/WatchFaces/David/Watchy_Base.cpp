@@ -268,21 +268,28 @@ void callback(char* topic, byte* payload, unsigned int length){
 
 
 bool WatchyBase::connectWiFi(){
+    int overall_retries = 3;
 
-    WIFI_CONFIGURED = false;
-    WiFi.begin(WIFI_SSID, WIFI_PASS);
+    while(overall_retries > 0){
+        WIFI_CONFIGURED = false;
+        WiFi.begin(WIFI_SSID, WIFI_PASS);
 
-    int8_t retries = 20;
-    while (!WIFI_CONFIGURED) {
-        if(retries < 0){
+        int8_t retries = 15;
+        while (!WIFI_CONFIGURED) {
+            if(retries < 0){
+                break;
+            }
+            retries--;
+
+            delay(100);
+            WIFI_CONFIGURED = (WiFi.status() == WL_CONNECTED);
+        }
+
+        if(WIFI_CONFIGURED){
             break;
         }
-        retries--;
-
-        delay(250);
-        WIFI_CONFIGURED = (WiFi.status() == WL_CONNECTED);
+        overall_retries--;
     }
-
 
     return WIFI_CONFIGURED;
 }
