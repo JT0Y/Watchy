@@ -15,7 +15,7 @@ WatchyBTTF::WatchyBTTF(){
 
 void WatchyBTTF::handleButtonPress(){
     WatchyBase::handleButtonPress();
-    
+
     uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
     if(IS_DOUBLE_TAP){
         // NOP
@@ -48,7 +48,7 @@ void WatchyBTTF::printCentered(uint16_t x, uint16_t y, String text){
 }
 
 
-void WatchyBTTF::drawTime(){    
+void WatchyBTTF::drawTime(){
     display.setFont(&FONT_7_SEG_LARGE);
     display.setTextColor(BACKGROUND_COLOR);
     String hourStr = String(currentTime.Hour);
@@ -72,12 +72,17 @@ void WatchyBTTF::drawDate(){
     dayStr = currentTime.Day < 10 ? "0" + dayStr : dayStr;
     printCentered(94, 103, dayStr);
 
-    String yearStr = String(currentTime.Year + YEAR_OFFSET);
-    printCentered(157, 103, yearStr);
+    if(alarm_timer < 0){
+        String yearStr = String(currentTime.Year + YEAR_OFFSET);
+        printCentered(157, 103, yearStr);
+    } else {
+        String alarm_str = "T-" + String(alarm_timer);
+        printCentered(157, 103, alarm_str);
+    }
 }
 
 
-void WatchyBTTF::drawBattery(){   
+void WatchyBTTF::drawBattery(){
     display.setFont(&FONT_7_SEG_MEDIUM);
     display.setTextColor(BACKGROUND_COLOR);
 
@@ -89,18 +94,18 @@ void WatchyBTTF::drawBattery(){
 }
 
 
-void WatchyBTTF::drawSteps(){   
+void WatchyBTTF::drawSteps(){
     display.setFont(&FONT_7_SEG_MEDIUM);
     display.setTextColor(BACKGROUND_COLOR);
 
     bool rtc_alarm = wakeup_reason == ESP_SLEEP_WAKEUP_EXT0;
-    
+
     // Whenever we have a new hour, we can restart our step counting.
     // But only if its an rtc alarm - ignore button press etc.
     if(rtc_alarm && currentTime.Minute == 0 && currentTime.Hour == 0){
         sensor.resetStepCounter();
     }
-    
+
     uint32_t steps = sensor.getCounter();
     String stepStr = String(steps);
     for(int i=1; i<5; i++){

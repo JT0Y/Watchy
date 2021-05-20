@@ -4,14 +4,14 @@
 //#include "Watchy_Jarvis.h"
 //WatchyJarvis watchy;
 
-// #include "Watchy_BTTF.h"
-// WatchyBTTF watchy;
+#include "Watchy_BTTF.h"
+WatchyBTTF watchy;
 
 // #include "Watchy_Analog.h"
 // WatchyAnalog watchy;
 
-#include "Watchy_Dot.h"
-WatchyDot watchy;
+// #include "Watchy_Dot.h"
+// WatchyDot watchy;
 
 //#include "Watchy_BCD.h"
 //WatchyBCD watchy;
